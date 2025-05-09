@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="Mapping\Profiles\UserProfile.cs" />
+		<Compile Remove="Services\CacheService.cs" />
+		<Compile Remove="Services\EnhancedMapperService.cs" />
+		<Compile Remove="Services\JwtService.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="12.0.1" />
+		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+		<PackageReference Include="MediatR" Version="12.5.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\WFT.Infra.Application.Contracts\WFT.Infra.Application.Contracts.csproj" />
+		<ProjectReference Include="..\WFT.Infra.Core\WFT.Infra.Core.csproj" />
+	</ItemGroup>
+
+</Project>

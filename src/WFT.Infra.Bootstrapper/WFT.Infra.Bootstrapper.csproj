@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WFT.Infra.Application.Contracts\WFT.Infra.Application.Contracts.csproj" />
+    <ProjectReference Include="..\WFT.Infra.Application\WFT.Infra.Application.csproj" />
+    <ProjectReference Include="..\WFT.Infra.Infrastructure\WFT.Infra.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

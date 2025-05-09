@@ -1,0 +1,6 @@
+@WFT.Infra.WebApi_HostAddress = http://localhost:5086
+
+GET {{WFT.Infra.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
