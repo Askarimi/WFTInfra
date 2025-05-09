@@ -1,0 +1,82 @@
+## Ignore Visual Studio temporary files, build results, and
+## user-specific files
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio files
+.vs/
+.vscode/
+*.dbmdl
+*.bak
+*.cache
+*.pdb
+
+# NUGET
+*.nupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Azure Deployment
+.publish/
+*.azurePubxml
+*.pubxml
+*.publishproj
+
+# IIS Express
+/.vs/config/applicationhost.config
+iisexpress/
+
+# Rider (JetBrains)
+.idea/
+
+# Others
+_ReSharper*/
+*.DotSettings.user
+*.sln.iml
+
+# OS generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Mac OS
+.DS_Store
+
+# Logs
+*.log
+*.tlog
+
+# Test results
+*.trx
+*.coverage
+*.coveragexml
+TestResults/
+
+# Entity Framework Migrations
+Migrations/
+
+# DotCover
+*.dotCover
