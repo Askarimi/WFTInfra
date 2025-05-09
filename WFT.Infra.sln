@@ -1,0 +1,65 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B63B114B-2914-4313-A954-AF985713A251}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WFT.Infra.Core", "src\WFT.Infra.Core\WFT.Infra.Core.csproj", "{6FE2ADFE-6E23-4199-A711-F951229F53C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WFT.Infra.Application", "src\WFT.Infra.Application\WFT.Infra.Application.csproj", "{09A29DF3-203E-4986-A778-F6685C4F8FD6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WFT.Infra.Infrastructure", "src\WFT.Infra.Infrastructure\WFT.Infra.Infrastructure.csproj", "{B77A54F6-8D35-43D4-95C5-4EE244446872}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WFT.Infra.WebApi", "src\WFT.Infra.WebApi\WFT.Infra.WebApi.csproj", "{76E3710C-A9A3-4001-8EC1-973A2B608E69}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WFT.Infra.Application.Contracts", "src\WFT.Infra.Application.Contracts\WFT.Infra.Application.Contracts.csproj", "{480246A5-3899-69A0-9BB7-4519F21E49CC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WFT.Infra.Bootstrapper", "src\WFT.Infra.Bootstrapper\WFT.Infra.Bootstrapper.csproj", "{9D1CF05A-9084-4A12-9C50-47BE5932A765}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6FE2ADFE-6E23-4199-A711-F951229F53C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FE2ADFE-6E23-4199-A711-F951229F53C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FE2ADFE-6E23-4199-A711-F951229F53C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FE2ADFE-6E23-4199-A711-F951229F53C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09A29DF3-203E-4986-A778-F6685C4F8FD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09A29DF3-203E-4986-A778-F6685C4F8FD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09A29DF3-203E-4986-A778-F6685C4F8FD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09A29DF3-203E-4986-A778-F6685C4F8FD6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B77A54F6-8D35-43D4-95C5-4EE244446872}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B77A54F6-8D35-43D4-95C5-4EE244446872}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B77A54F6-8D35-43D4-95C5-4EE244446872}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B77A54F6-8D35-43D4-95C5-4EE244446872}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76E3710C-A9A3-4001-8EC1-973A2B608E69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76E3710C-A9A3-4001-8EC1-973A2B608E69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76E3710C-A9A3-4001-8EC1-973A2B608E69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76E3710C-A9A3-4001-8EC1-973A2B608E69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{480246A5-3899-69A0-9BB7-4519F21E49CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{480246A5-3899-69A0-9BB7-4519F21E49CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{480246A5-3899-69A0-9BB7-4519F21E49CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{480246A5-3899-69A0-9BB7-4519F21E49CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D1CF05A-9084-4A12-9C50-47BE5932A765}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D1CF05A-9084-4A12-9C50-47BE5932A765}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D1CF05A-9084-4A12-9C50-47BE5932A765}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D1CF05A-9084-4A12-9C50-47BE5932A765}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6FE2ADFE-6E23-4199-A711-F951229F53C6} = {B63B114B-2914-4313-A954-AF985713A251}
+		{09A29DF3-203E-4986-A778-F6685C4F8FD6} = {B63B114B-2914-4313-A954-AF985713A251}
+		{B77A54F6-8D35-43D4-95C5-4EE244446872} = {B63B114B-2914-4313-A954-AF985713A251}
+		{76E3710C-A9A3-4001-8EC1-973A2B608E69} = {B63B114B-2914-4313-A954-AF985713A251}
+		{480246A5-3899-69A0-9BB7-4519F21E49CC} = {B63B114B-2914-4313-A954-AF985713A251}
+		{9D1CF05A-9084-4A12-9C50-47BE5932A765} = {B63B114B-2914-4313-A954-AF985713A251}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9BF7C96E-BC2B-4560-A40F-44C78554C68F}
+	EndGlobalSection
+EndGlobal
