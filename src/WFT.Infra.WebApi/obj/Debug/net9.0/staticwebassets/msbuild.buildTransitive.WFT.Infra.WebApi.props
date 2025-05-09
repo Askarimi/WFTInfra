@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\buildMultiTargeting\WFT.Infra.WebApi.props" />
-</Project>

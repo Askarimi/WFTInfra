@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\WFT.Infra.WebApi.props" />
-</Project>
