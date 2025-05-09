@@ -80,3 +80,6 @@ Migrations/
 
 # DotCover
 *.dotCover
+
+#workload-install
+workload-install
