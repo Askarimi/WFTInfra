@@ -33,7 +33,7 @@ namespace WFT.Infra.WebApi.Controllers
                 return ErrorResponse("Invalid country data", 400);
             }
 
-            var createdCountry = await _countryService.CreateAsync(countryDto);
+            var createdCountry = await _countryService.AddAsync(countryDto);
             return CreatedResponse(createdCountry);
         }
 

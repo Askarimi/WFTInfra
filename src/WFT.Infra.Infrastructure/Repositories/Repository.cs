@@ -1,5 +1,5 @@
+﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore;
 using WFT.Infra.Application.Contracts.Repositories;
 using WFT.Infra.Core.Entities;
 using WFT.Infra.Infrastructure.Data;
@@ -27,11 +27,20 @@ namespace WFT.Infra.Infrastructure.Repositories
             return await _dbSet.ToListAsync();
         }
 
-        public virtual async Task<TEntity> CreateAsync(TEntity entity)
+        public virtual async Task<TEntity> AddAsync(TEntity entity)
         {
             await _dbSet.AddAsync(entity);
             await _context.SaveChangesAsync();
             return entity;
+        }
+
+        public virtual async Task AddRangeAsync(IEnumerable<TEntity> entities)
+        {
+            if (entities == null || !entities.Any())
+                throw new ArgumentException("Entities cannot be null or empty");
+
+            await _dbSet.AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
         }
 
         public virtual async Task UpdateAsync(TEntity entity)
@@ -48,6 +57,15 @@ namespace WFT.Infra.Infrastructure.Repositories
                 _dbSet.Remove(entity);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public virtual async Task RemoveRangeAsync(IEnumerable<TEntity> entities)
+        {
+            if (entities == null || !entities.Any())
+                throw new ArgumentException("Entities cannot be null or empty");
+
+            _dbSet.RemoveRange(entities);
+            await _context.SaveChangesAsync();
         }
 
         public virtual async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
@@ -67,5 +85,17 @@ namespace WFT.Infra.Infrastructure.Repositories
 
             return await _dbSet.CountAsync(predicate);
         }
+
+        // متد کمکی جدید که Expression را دریافت می‌کند و لیست را برمی‌گرداند
+        public async Task<IEnumerable<TEntity>> GetListByExpressionAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return await _dbSet.Where(predicate).ToListAsync();
+        }
+
+        // متد Table برای دسترسی به داده‌ها با استفاده از IQueryable
+        public IQueryable<TEntity> Table => _dbSet.AsQueryable();
+
+        // متد TableNoTracking برای بهبود عملکرد در خواندن داده‌ها
+        public IQueryable<TEntity> TableNoTracking => _dbSet.AsNoTracking().AsQueryable();
     }
 }

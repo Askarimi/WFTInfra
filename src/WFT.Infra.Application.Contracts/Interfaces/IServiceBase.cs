@@ -2,11 +2,10 @@
 {
     public partial interface IServiceBase<TDto> where TDto : class
     {
-        Task<TDto> GetByIdAsync(int id);
+        Task<TDto> GetByIdAsync(long id);
         Task<IEnumerable<TDto>> GetAllAsync();
-        Task<IEnumerable<TDto>> GetActiveSamplesAsync();
-        Task<TDto> CreateAsync(TDto dto);
+        Task<TDto> AddAsync(TDto dto);
         Task UpdateAsync(TDto dto);
-        Task DeleteAsync(int id);
+        Task DeleteAsync(long id);
     }
 }

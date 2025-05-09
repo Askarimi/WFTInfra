@@ -18,25 +18,20 @@ namespace WFT.Infra.Application.Services
             _mapper = mapper;
         }
         #endregion
-        public virtual async Task<CountryDto> CreateAsync(CountryDto dto)
+        public virtual async Task<CountryDto> AddAsync(CountryDto dto)
         {
             var country = _mapper.Map<Country>(dto);
 
-            await _countryRepository.CreateAsync(country);
+            await _countryRepository.AddAsync(country);
 
             var countryDto = _mapper.Map<CountryDto>(country);
 
             return countryDto;
         }
 
-        public virtual async Task DeleteAsync(int id)
+        public virtual async Task DeleteAsync(long id)
         {
             await _countryRepository.DeleteAsync(id);
-        }
-
-        public Task<IEnumerable<CountryDto>> GetActiveSamplesAsync()
-        {
-            throw new NotImplementedException();
         }
 
         public virtual async Task<IEnumerable<CountryDto>> GetAllAsync()
@@ -46,7 +41,7 @@ namespace WFT.Infra.Application.Services
             return _mapper.Map<IEnumerable<CountryDto>>(countries);
         }
 
-        public virtual async Task<CountryDto> GetByIdAsync(int id)
+        public virtual async Task<CountryDto> GetByIdAsync(long id)
         {
             var country = await _countryRepository.GetByIdAsync(id);
 
