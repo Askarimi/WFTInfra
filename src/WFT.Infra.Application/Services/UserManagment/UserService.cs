@@ -12,14 +12,21 @@ namespace WFT.Infra.Application.Services.UserManagment
         #region ctor
 
         private readonly IRepository<User> _userRepository;
+        private readonly IRepository<UserRole> _userRoleRepository;
+        private readonly IRepository<Role> _roleRepository;
 
         private readonly IMapper _mapper;
 
 
-        public UserService(IRepository<User> userRepository, IMapper mapper)
+        public UserService(IRepository<User> userRepository,
+            IMapper mapper, 
+            IRepository<UserRole> userRoleRepository, 
+            IRepository<Role> roleRepository)
         {
             _mapper = mapper;
             _userRepository = userRepository;
+            _userRoleRepository = userRoleRepository;   
+            _roleRepository = roleRepository;   
         }
         #endregion
 
@@ -57,5 +64,51 @@ namespace WFT.Infra.Application.Services.UserManagment
             var user = _mapper.Map<User>(dto);
             await _userRepository.UpdateAsync(user);
         }
+
+        public virtual async Task<IEnumerable<RoleDto>> GetRolesForUserAsync(long userId)
+        {
+            // پیدا کردن تمام UserRole‌هایی که مربوط به این کاربر هستن
+            var userRoles = await _userRoleRepository.GetListByExpressionAsync(ur => ur.UserId == userId);
+
+            // استخراج RoleId‌ها
+            var roleIds = userRoles.Select(ur => ur.RoleId).Distinct().ToList();
+
+            if (!roleIds.Any())
+                return Enumerable.Empty<RoleDto>();
+
+            // پیدا کردن خود Roleها
+            var roles = await _roleRepository.GetListByExpressionAsync(r => roleIds.Contains(r.Id));
+
+            // تبدیل به DTO
+            var roleDtos = roles.Select(r => new RoleDto
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Description = r.Description,
+                IsActive = r.IsActive
+            });
+
+            return roleDtos;
+        }
+
+        public async Task<bool> HasPermissionAsync(long userId, string permissionName)
+        {
+            var user = await _userRepository.GetWithIncludesAsync(
+                u => u.Id == userId,
+                u => u.UserRoles,
+                u => u.UserRoles.Select(ur => ur.Role),
+                u => u.UserRoles.Select(ur => ur.Role.RolePermissions),
+                u => u.UserRoles.Select(ur => ur.Role.RolePermissions.Select(rp => rp.Permission))
+            );
+
+            var matchedUser = user.FirstOrDefault();
+            if (matchedUser == null) return false;
+
+            return matchedUser.UserRoles
+                .SelectMany(ur => ur.Role.RolePermissions)
+                .Any(rp => rp.Permission.Name == permissionName);
+        }
+
+
     }
 }

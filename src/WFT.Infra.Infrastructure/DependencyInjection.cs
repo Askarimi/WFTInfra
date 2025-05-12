@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WFT.Infra.Application.Contracts.Repositories;
+using WFT.Infra.Core.Entities.UserManagment;
 using WFT.Infra.Infrastructure.Data;
 using WFT.Infra.Infrastructure.Repositories;
 
@@ -14,11 +15,20 @@ namespace WFT.Infra.Infrastructure
 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
+            services.AddScoped<IUserRepository<User>, UserRepository>();
 
 
             // اتصال به دیتابیس با استفاده از ApplicationDbContext
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+
+
+            // اجرای خودکار مایگریشن‌ها هنگام شروع پروژه
+            using (var serviceProvider = services.BuildServiceProvider())
+            {
+                var dbContext = serviceProvider.GetRequiredService<ApplicationDbContext>();
+                dbContext.Database.Migrate();  // اجرای خودکار مایگریشن‌ها
+            }
 
             return services;
         }

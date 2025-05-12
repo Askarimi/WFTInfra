@@ -6,7 +6,7 @@ using WFT.Infra.Infrastructure.Data;
 
 namespace WFT.Infra.Infrastructure.Repositories
 {
-    public class Repository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity
+    public partial class Repository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity
     {
         protected readonly ApplicationDbContext _context;
         protected readonly DbSet<TEntity> _dbSet;
@@ -87,10 +87,36 @@ namespace WFT.Infra.Infrastructure.Repositories
         }
 
         // متد کمکی جدید که Expression را دریافت می‌کند و لیست را برمی‌گرداند
-        public async Task<IEnumerable<TEntity>> GetListByExpressionAsync(Expression<Func<TEntity, bool>> predicate)
+        public virtual async Task<IEnumerable<TEntity>> GetListByExpressionAsync(Expression<Func<TEntity, bool>> predicate)
         {
             return await _dbSet.Where(predicate).ToListAsync();
         }
+        public virtual async Task<TEntity> GetByExpressionAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return await _dbSet.FindAsync(predicate);
+        }
+        // متد عمومی برای بارگذاری داده‌ها با Include های دینامیک
+        public async Task<IEnumerable<TEntity>> GetWithIncludesAsync(
+       Expression<Func<TEntity, bool>> predicate = null,
+       params Expression<Func<TEntity, object>>[] includes)
+        {
+            IQueryable<TEntity> query = _context.Set<TEntity>();
+
+            // اضافه کردن شرایط Filter (predicate) اگر نیاز بود
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
+            // اضافه کردن Include ها به صورت دینامیک
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return await query.ToListAsync();
+        }
+
 
         // متد Table برای دسترسی به داده‌ها با استفاده از IQueryable
         public IQueryable<TEntity> Table => _dbSet.AsQueryable();

@@ -26,6 +26,11 @@ namespace WFT.Infra.Application.Contracts.Repositories
         Task<long> CountAsync(Expression<Func<TEntity, bool>> predicate = null);
         // متد کمکی جدید که Expression را دریافت می‌کند و لیست را برمی‌گرداند
         Task<IEnumerable<TEntity>> GetListByExpressionAsync(Expression<Func<TEntity, bool>> predicate);
+        Task<TEntity> GetByExpressionAsync(Expression<Func<TEntity, bool>> predicate);
+        // متد عمومی برای بارگذاری داده‌ها با Include های دینامیک
+        Task<IEnumerable<TEntity>> GetWithIncludesAsync(
+      Expression<Func<TEntity, bool>> predicate = null,
+      params Expression<Func<TEntity, object>>[] includes);
         // دسترسی به تمام داده‌ها به صورت IQueryable
         IQueryable<TEntity> Table { get; }
         // دسترسی به داده‌ها بدون Tracking (بدون ذخیره‌سازی وضعیت داده‌ها)

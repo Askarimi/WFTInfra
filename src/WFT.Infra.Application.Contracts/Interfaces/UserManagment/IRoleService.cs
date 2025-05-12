@@ -7,6 +7,7 @@ namespace WFT.Infra.Application.Contracts.Interfaces.UserManagment
         Task AddPermissionsToRoleAsync(long roleId, List<long> permissionIds);
         Task RemovePermissionsFromRoleAsync(long roleId, List<long> permissionIds);
         Task<IEnumerable<PermissionDto>> GetPermissionsForRoleAsync(long roleId);
+        Task<IEnumerable<PermissionDto>> GetPermissionsForRoleAsync(List<long> roleIds);
         Task<IEnumerable<RoleDto>> GetActiveRolesAsync();
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace WFT.Infra.Core.Entities.UserManagment
 {
-    public abstract class Role : BaseEntity
+    public partial class Role : BaseEntity
     {
         public string Name { get; set; }
         public bool IsActive { get; set; }

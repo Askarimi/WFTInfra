@@ -138,5 +138,23 @@ namespace WFT.Infra.Application.Services.UserManagment
 
             return roleDtos;
         }
+
+        public virtual async Task<IEnumerable<PermissionDto>> GetPermissionsForRoleAsync(List<long> roleIds)
+        {
+            var rolePermissions = await _rolePermissionRepository
+         .GetListByExpressionAsync(rp => roleIds.Contains(rp.RoleId));
+
+            var permissionIds = rolePermissions.Select(rp => rp.PermissionId).Distinct();
+
+            var permissions = await _permissionRepository
+                .GetListByExpressionAsync(p => permissionIds.Contains(p.Id));
+
+            return permissions.Select(p => new PermissionDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                DisplayName = p.DisplayName
+            });
+        }
     }
 }

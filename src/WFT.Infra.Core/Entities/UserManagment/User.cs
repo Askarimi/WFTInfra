@@ -1,6 +1,6 @@
 ﻿namespace WFT.Infra.Core.Entities.UserManagment
 {
-    public abstract class User : BaseEntity
+    public partial class User : BaseEntity
     {
         public string Username { get; set; }
         public string Email { get; set; }
