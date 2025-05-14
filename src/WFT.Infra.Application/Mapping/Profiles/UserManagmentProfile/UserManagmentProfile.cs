@@ -7,10 +7,10 @@ namespace WFT.Infra.Application.Mapping.Profiles.UserManagmentProfile
     {
         protected override void ConfigureMappings()
         {
-
             CreateMap<User, UserDto>().ReverseMap();
+            CreateMap<UserDto, UserRegisterDto>().ReverseMap();
             CreateMap<Role, RoleDto>().ReverseMap();
-
+            CreateMap<Permission, PermissionDto>().ReverseMap();
         }
     }
 }

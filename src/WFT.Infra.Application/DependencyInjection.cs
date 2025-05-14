@@ -1,9 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System.Configuration;
 using System.Reflection;
 using WFT.Infra.Application.Contracts.Interfaces;
+using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Application.Helper;
 using WFT.Infra.Application.Services;
 using WFT.Infra.Application.Services.UserManagment;
+using WFT.Infra.Application.Settings;
 
 namespace WFT.Infra.Application
 {
@@ -13,17 +16,13 @@ namespace WFT.Infra.Application
         {
             services.AddMediatR(cfg =>
             {
-
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-
             });
 
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
-
-
             // تنظیمات JwtTokenGenerator
-            services.AddSingleton<JwtTokenGenerator>();
+             services.AddSingleton<JwtTokenGenerator>();
 
             services.AddAuthorizationCore(options =>
             {
@@ -41,13 +40,15 @@ namespace WFT.Infra.Application
                 //}
             });
 
-
-
             #region Add Scoped
             services.AddScoped<ICountryService, CountryService>();
-
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IPermissionService, PermissionService>();
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+            services.AddScoped<IPasswordHasher, PasswordHasher>();
             #endregion
-
 
             return services;
         }

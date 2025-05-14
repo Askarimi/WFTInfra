@@ -93,7 +93,7 @@ namespace WFT.Infra.Infrastructure.Repositories
         }
         public virtual async Task<TEntity> GetByExpressionAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return await _dbSet.FindAsync(predicate);
+            return await _dbSet.FirstOrDefaultAsync(predicate);
         }
         // متد عمومی برای بارگذاری داده‌ها با Include های دینامیک
         public async Task<IEnumerable<TEntity>> GetWithIncludesAsync(

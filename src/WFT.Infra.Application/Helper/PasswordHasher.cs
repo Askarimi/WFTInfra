@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WFT.Infra.Application.Contracts.Interfaces;
 
 namespace WFT.Infra.Application.Helper
 {
-    public partial class PasswordHasher
+    public partial class PasswordHasher: IPasswordHasher
     {
         public string HashPassword(string password)
         {

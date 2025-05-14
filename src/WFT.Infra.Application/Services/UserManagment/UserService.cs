@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
+using System.Linq.Expressions;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
+using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Application.Contracts.Repositories;
+using WFT.Infra.Application.Helper;
 using WFT.Infra.Core.Entities.UserManagment;
 
 namespace WFT.Infra.Application.Services.UserManagment
@@ -14,19 +17,25 @@ namespace WFT.Infra.Application.Services.UserManagment
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<UserRole> _userRoleRepository;
         private readonly IRepository<Role> _roleRepository;
-
+        private readonly IPasswordHasher _passwordHasher;
         private readonly IMapper _mapper;
+        private readonly ITokenService _tokenService;
 
 
         public UserService(IRepository<User> userRepository,
             IMapper mapper, 
             IRepository<UserRole> userRoleRepository, 
-            IRepository<Role> roleRepository)
+            IRepository<Role> roleRepository,
+            IPasswordHasher passwordHasher,
+            ITokenService tokenService
+            )
         {
             _mapper = mapper;
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;   
             _roleRepository = roleRepository;   
+            _passwordHasher = passwordHasher;
+            _tokenService = tokenService;
         }
         #endregion
 
@@ -109,6 +118,73 @@ namespace WFT.Infra.Application.Services.UserManagment
                 .Any(rp => rp.Permission.Name == permissionName);
         }
 
+        public async Task<long> RegisterByUserAsync(UserRegisterDto dto)
+        {
+            // چک کردن اینکه آیا کاربر قبلاً ثبت‌نام کرده یا نه
+
+            // ایجاد یک شرط به صورت Expression
+            var predicate = (Expression<Func<User, bool>>)(u => u.Email == dto.Email);
+
+            var existingUser = await _userRepository.GetByExpressionAsync(predicate);
+                
+
+            if (existingUser != null)
+                throw new Exception("User with this email already exists.");
+
+            // ساختن کاربر جدید
+            var user = new User
+            {
+                Username = dto.Username,
+                Email = dto.Email,
+                PasswordHash = _passwordHasher.HashPassword(dto.Password), // هش کردن پسورد
+                EmailConfirmed = false, // در این حالت کاربر باید ایمیل خودش رو تأیید کنه
+                IsActive = false, // این مورد هم باید منتظر تأیید ایمیل بمونه
+            };
+
+            // اضافه کردن کاربر به دیتابیس
+            await _userRepository.AddAsync(user);
+
+            return user.Id;
+        }
+
+        public async Task<object> LoginAsync(UserLoginDto dto)
+        {
+            // بررسی وجود کاربر
+            // ایجاد یک شرط به صورت Expression
+            var predicate = (Expression<Func<User, bool>>)(u => u.Username == dto.UserName);
+            var user = await _userRepository.GetByExpressionAsync(predicate);
+                
+
+            if (user == null)
+                throw new Exception("کاربری با این ایمیل یافت نشد.");
+
+            // بررسی رمز عبور
+            var isPasswordValid = _passwordHasher.VerifyPassword(dto.Password,user.PasswordHash);
+
+            if (!isPasswordValid)
+                throw new Exception("رمز عبور اشتباه است.");
+
+            if (!user.IsActive)
+                throw new Exception("حساب کاربری غیرفعال است.");
+
+            if (!user.EmailConfirmed)
+                throw new Exception("ایمیل تأیید نشده است.");
+
+            // تولید توکن
+            var token = _tokenService.GenerateTokenForUser(user);
+
+            // بازگرداندن اطلاعات کاربر و توکن
+            return new
+            {
+                Token = token,
+                User = new
+                {
+                    user.Id,
+                    user.Username,
+                    user.Email
+                }
+            };
+        }
 
     }
 }

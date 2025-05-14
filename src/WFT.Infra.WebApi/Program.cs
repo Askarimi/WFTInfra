@@ -1,4 +1,5 @@
 ﻿using Microsoft.OpenApi.Models;
+using WFT.Infra.Application.Settings;
 using WFT.Infra.Bootstrapper;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddProjectDependencies(builder.Configuration);
+
+builder.Services.Configure<JwtSettings>(
+    builder.Configuration.GetSection("JwtSettings"));
+
 // Configure OpenAPI/Swagger
 builder.Services.AddSwaggerGen(c =>
 {

@@ -8,6 +8,9 @@ namespace WFT.Infra.Application.Contracts.Interfaces.UserManagment
         Task<IEnumerable<RoleDto>> GetRolesForUserAsync(long userId);
 
         Task<bool> HasPermissionAsync(long userId, string permissionName);
-        
+
+        Task<long> RegisterByUserAsync(UserRegisterDto dto);
+
+        Task<object> LoginAsync(UserLoginDto dto);
     }
 }

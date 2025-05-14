@@ -23,6 +23,8 @@ namespace WFT.Infra.Application.Helper
             _jwtSettings = jwtOptions.Value;
         }
 
+        public JwtSettings JwtSettings { set { value = _jwtSettings; } }
+
         public string GenerateToken(string userId, string username, IEnumerable<string> roles, IEnumerable<string> permissions)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
