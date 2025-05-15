@@ -1,26 +1,27 @@
-﻿using Microsoft.Extensions.Options;
+﻿using AutoMapper;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
+using WFT.Infra.Application.Contracts.DTOs.UserManagment;
+using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Helper;
 using WFT.Infra.Application.Settings;
 using WFT.Infra.Core.Entities.UserManagment;
 
 namespace WFT.Infra.Application.Services
 {
-    public partial class TokenService:ITokenService
+    public partial class TokenService : ITokenService
     {
         private readonly JwtTokenGenerator _jwtTokenGenerator;
         private readonly JwtSettings _jwtSettings;
-        public TokenService(JwtTokenGenerator jwtTokenGenerator,IOptions<JwtSettings> jwtOptions)
+        private readonly IMapper _mapper;
+        public TokenService(JwtTokenGenerator jwtTokenGenerator, IOptions<JwtSettings> jwtOptions, IMapper mapper)
         {
             _jwtTokenGenerator = jwtTokenGenerator;
-            _jwtSettings = jwtOptions.Value;    
+            _jwtSettings = jwtOptions.Value;
+            _mapper = mapper;
         }
 
         public string GenerateToken(string userId, string username, IEnumerable<string> roles, IEnumerable<string> permissions)
@@ -28,8 +29,9 @@ namespace WFT.Infra.Application.Services
             return _jwtTokenGenerator.GenerateToken(userId, username, roles, permissions);
         }
 
-        public string GenerateTokenForUser(User user)
+        public string GenerateTokenForUser(UserDto userDto)
         {
+            var user = _mapper.Map<User>(userDto);
             var roles = user.UserRoles.Select(ur => ur.Role.Name);
             var permissions = user.UserRoles
                 .SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission.Name));

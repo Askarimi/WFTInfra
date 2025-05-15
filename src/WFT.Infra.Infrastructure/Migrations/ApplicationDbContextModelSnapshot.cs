@@ -33,12 +33,18 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -56,6 +62,9 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -69,6 +78,9 @@ namespace WFT.Infra.Infrastructure.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -86,6 +98,9 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -99,6 +114,9 @@ namespace WFT.Infra.Infrastructure.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -116,6 +134,9 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("PermissionId")
                         .HasColumnType("bigint");
 
@@ -124,6 +145,9 @@ namespace WFT.Infra.Infrastructure.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -144,6 +168,9 @@ namespace WFT.Infra.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -171,6 +198,9 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -191,11 +221,17 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("RoleId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");

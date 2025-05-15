@@ -1,17 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
-using WFT.Infra.Core.Entities.UserManagment;
+using WFT.Infra.Contracts.Interfaces;
 
 namespace WFT.Infra.WebApi.Controllers
 {
+    [Authorize]
     public class UsersController : BaseController
     {
         private readonly IUserService _userService;
-
-        public UsersController(IUserService userService)
+        private readonly IWorkContext _workContext;
+        public UsersController(IUserService userService, IWorkContext workContext)
         {
             _userService = userService;
+            _workContext = workContext;
         }
 
         // CREATE
@@ -20,6 +23,9 @@ namespace WFT.Infra.WebApi.Controllers
         {
             if (!ModelState.IsValid)
                 return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
+
+
+            request.CreatedUserId = _workContext.UserId.Value;
 
             var user = await _userService.AddAsync(request);
             var result = await _userService.GetByIdAsync(user.Id);
@@ -53,7 +59,7 @@ namespace WFT.Infra.WebApi.Controllers
             if (!ModelState.IsValid)
                 return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
 
-             await _userService.UpdateAsync(request);
+            await _userService.UpdateAsync(request);
 
             return await NoContentResponse();
         }

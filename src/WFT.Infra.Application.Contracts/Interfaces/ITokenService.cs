@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using WFT.Infra.Core.Entities.UserManagment;
+﻿using System.Security.Claims;
+using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 
-namespace WFT.Infra.Application.Services
+namespace WFT.Infra.Application.Contracts.Interfaces
 {
     public partial interface ITokenService
     {
         string GenerateToken(string userId, string username, IEnumerable<string> roles, IEnumerable<string> permissions);
 
-        string GenerateTokenForUser(User user);
-        
+        string GenerateTokenForUser(UserDto userDto);
+
         string RefreshToken(string expiredToken);
 
         bool ValidateToken(string token);

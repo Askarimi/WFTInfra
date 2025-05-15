@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System.Configuration;
 using System.Reflection;
 using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Application.Helper;
 using WFT.Infra.Application.Services;
 using WFT.Infra.Application.Services.UserManagment;
-using WFT.Infra.Application.Settings;
+using WFT.Infra.Contracts.Interfaces;
 
 namespace WFT.Infra.Application
 {
@@ -22,14 +21,14 @@ namespace WFT.Infra.Application
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
             // تنظیمات JwtTokenGenerator
-             services.AddSingleton<JwtTokenGenerator>();
+            services.AddSingleton<JwtTokenGenerator>();
 
             services.AddAuthorizationCore(options =>
             {
-               // var serviceProvider = services.b;
+                // var serviceProvider = services.b;
                 // فرض کنیم که PermissionService از دیتابیس Permission‌ها رو می‌خونه
-               // var permissionService = services.BuildServiceProvider().GetService<PermissionService>();
-             //   var permissions = permissionService.GetAllPermissionsAsync().Result;
+                // var permissionService = services.BuildServiceProvider().GetService<PermissionService>();
+                //   var permissions = permissionService.GetAllPermissionsAsync().Result;
 
                 //foreach (var permission in permissions)
                 //{
@@ -48,6 +47,7 @@ namespace WFT.Infra.Application
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
+            services.AddScoped<IWorkContext, WorkContext>();
             #endregion
 
             return services;

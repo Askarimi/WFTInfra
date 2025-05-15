@@ -4,7 +4,6 @@ using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Application.Contracts.Repositories;
-using WFT.Infra.Application.Helper;
 using WFT.Infra.Core.Entities.UserManagment;
 
 namespace WFT.Infra.Application.Services.UserManagment
@@ -23,8 +22,8 @@ namespace WFT.Infra.Application.Services.UserManagment
 
 
         public UserService(IRepository<User> userRepository,
-            IMapper mapper, 
-            IRepository<UserRole> userRoleRepository, 
+            IMapper mapper,
+            IRepository<UserRole> userRoleRepository,
             IRepository<Role> roleRepository,
             IPasswordHasher passwordHasher,
             ITokenService tokenService
@@ -32,8 +31,8 @@ namespace WFT.Infra.Application.Services.UserManagment
         {
             _mapper = mapper;
             _userRepository = userRepository;
-            _userRoleRepository = userRoleRepository;   
-            _roleRepository = roleRepository;   
+            _userRoleRepository = userRoleRepository;
+            _roleRepository = roleRepository;
             _passwordHasher = passwordHasher;
             _tokenService = tokenService;
         }
@@ -126,7 +125,7 @@ namespace WFT.Infra.Application.Services.UserManagment
             var predicate = (Expression<Func<User, bool>>)(u => u.Email == dto.Email);
 
             var existingUser = await _userRepository.GetByExpressionAsync(predicate);
-                
+
 
             if (existingUser != null)
                 throw new Exception("User with this email already exists.");
@@ -152,14 +151,16 @@ namespace WFT.Infra.Application.Services.UserManagment
             // بررسی وجود کاربر
             // ایجاد یک شرط به صورت Expression
             var predicate = (Expression<Func<User, bool>>)(u => u.Username == dto.UserName);
+
             var user = await _userRepository.GetByExpressionAsync(predicate);
-                
+
+            var userDto = _mapper.Map<UserDto>(user);
 
             if (user == null)
                 throw new Exception("کاربری با این ایمیل یافت نشد.");
 
             // بررسی رمز عبور
-            var isPasswordValid = _passwordHasher.VerifyPassword(dto.Password,user.PasswordHash);
+            var isPasswordValid = _passwordHasher.VerifyPassword(dto.Password, user.PasswordHash);
 
             if (!isPasswordValid)
                 throw new Exception("رمز عبور اشتباه است.");
@@ -171,7 +172,7 @@ namespace WFT.Infra.Application.Services.UserManagment
                 throw new Exception("ایمیل تأیید نشده است.");
 
             // تولید توکن
-            var token = _tokenService.GenerateTokenForUser(user);
+            var token = _tokenService.GenerateTokenForUser(userDto);
 
             // بازگرداندن اطلاعات کاربر و توکن
             return new

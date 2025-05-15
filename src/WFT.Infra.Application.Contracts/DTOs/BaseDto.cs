@@ -3,12 +3,7 @@
     public record BaseDto
     {
         public long Id { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-
-        protected BaseDto()
-        {
-            CreatedAt = DateTime.UtcNow;
-        }
+        public long CreatedUserId { get; set; }
+        public long? UpdatedUserId { get; set; }
     }
 }
