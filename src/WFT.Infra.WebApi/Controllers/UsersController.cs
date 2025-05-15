@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Contracts.Interfaces;
 
 namespace WFT.Infra.WebApi.Controllers
 {
-    [Authorize]
+
     public class UsersController : BaseController
     {
         private readonly IUserService _userService;
@@ -19,6 +18,7 @@ namespace WFT.Infra.WebApi.Controllers
 
         // CREATE
         [HttpPost]
+        [Route("Add")]
         public async Task<IActionResult> Create([FromBody] UserDto request)
         {
             if (!ModelState.IsValid)
@@ -34,7 +34,8 @@ namespace WFT.Infra.WebApi.Controllers
         }
 
         // READ BY ID
-        [HttpGet("{id:long}")]
+        [HttpGet()]
+        [Route("init/{id:long}")]
         public override async Task<IActionResult> GetById(int id)
         {
             var user = await _userService.GetByIdAsync(id);
@@ -46,6 +47,7 @@ namespace WFT.Infra.WebApi.Controllers
 
         // READ ALL
         [HttpGet]
+        [Route("List")]
         public async Task<IActionResult> GetAll()
         {
             var users = await _userService.GetAllAsync();
@@ -53,8 +55,9 @@ namespace WFT.Infra.WebApi.Controllers
         }
 
         // UPDATE
-        [HttpPut("{id:long}")]
-        public async Task<IActionResult> Update(long id, [FromBody] UserDto request)
+        [HttpPut()]
+        [Route("update")]
+        public async Task<IActionResult> Update([FromBody] UserDto request)
         {
             if (!ModelState.IsValid)
                 return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
@@ -65,7 +68,8 @@ namespace WFT.Infra.WebApi.Controllers
         }
 
         // DELETE
-        [HttpDelete("{id:long}")]
+        [HttpDelete()]
+        [Route("delete/{id:long}")]
         public async Task<IActionResult> Delete(long id)
         {
             await _userService.DeleteAsync(id);

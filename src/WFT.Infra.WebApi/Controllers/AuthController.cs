@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
-using WFT.Infra.Core.Entities.UserManagment;
 
 namespace WFT.Infra.WebApi.Controllers
 {
+    [AllowAnonymous]
     public class AuthController : BaseController
     {
 
@@ -20,9 +21,9 @@ namespace WFT.Infra.WebApi.Controllers
         {
             try
             {
-                var user= await _userService.RegisterByUserAsync(dto);
+                var user = await _userService.RegisterByUserAsync(dto);
 
-                return new OkObjectResult(new {success = true,message = "کاربر با موفقیت ثبت شد."});
+                return new OkObjectResult(new { success = true, message = "کاربر با موفقیت ثبت شد." });
             }
             catch (Exception ex)
             {

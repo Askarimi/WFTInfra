@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace WFT.Infra.WebApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Authorize]
+    [Route("api/app/v1/wft/[controller]", Name = "api_wftInfra_[controller]", Order = 0)]
     [ApiController]
     public class BaseController : ControllerBase
     {
