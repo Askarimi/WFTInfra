@@ -1,6 +1,6 @@
 namespace WFT.Infra.Core.Entities
 {
-    public abstract class BaseEntity
+    public partial class BaseEntity
     {
         public long Id { get; set; }
         public DateTime CreatedAt { get; set; }

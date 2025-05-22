@@ -1,15 +1,8 @@
 ﻿using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using WFT.Infra.Application.Contracts.DTOs;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Application.Contracts.Repositories;
-using WFT.Infra.Core.Entities;
 using WFT.Infra.Core.Entities.UserManagment;
 
 namespace WFT.Infra.Application.Services.UserManagment
@@ -25,7 +18,7 @@ namespace WFT.Infra.Application.Services.UserManagment
 
         public PermissionService(IRepository<Permission> persmissionRepository, IMapper mapper)
         {
-                _mapper = mapper;
+            _mapper = mapper;
             _permissionRepository = persmissionRepository;
         }
         #endregion
@@ -51,6 +44,13 @@ namespace WFT.Infra.Application.Services.UserManagment
         public virtual async Task<PermissionDto> GetByIdAsync(long id)
         {
             var permission = await _permissionRepository.GetByIdAsync(id);
+            return _mapper.Map<PermissionDto>(permission);
+        }
+
+        public virtual async Task<PermissionDto> GetByNameAsync(string name)
+        {
+            var permission = await _permissionRepository.GetByExpressionAsync(p => p.Name.Contains(name));
+
             return _mapper.Map<PermissionDto>(permission);
         }
 

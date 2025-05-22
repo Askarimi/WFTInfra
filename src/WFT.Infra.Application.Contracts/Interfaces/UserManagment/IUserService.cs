@@ -1,5 +1,4 @@
 ﻿using WFT.Infra.Application.Contracts.DTOs.UserManagment;
-using WFT.Infra.Application.Contracts.Repositories;
 
 namespace WFT.Infra.Application.Contracts.Interfaces.UserManagment
 {
@@ -11,6 +10,8 @@ namespace WFT.Infra.Application.Contracts.Interfaces.UserManagment
 
         Task<long> RegisterByUserAsync(UserRegisterDto dto);
 
-        Task<object> LoginAsync(UserLoginDto dto);
+        Task<UserDto> GetByUsernameAsync(string username);
+
+        Task AddRoleToUserAsync(long userId, List<long> roleIds);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using WFT.Infra.Application.Contracts.DTOs;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 
 namespace WFT.Infra.Application.Contracts.Interfaces
@@ -10,6 +11,7 @@ namespace WFT.Infra.Application.Contracts.Interfaces
         string GenerateTokenForUser(UserDto userDto);
 
         string RefreshToken(string expiredToken);
+        Task<JwtResultDto?> RefreshTokenAsync(string refreshToken);
 
         bool ValidateToken(string token);
 

@@ -21,7 +21,6 @@ namespace WFT.Infra.Infrastructure.Repositories
         {
             return await _dbSet.FindAsync(id);
         }
-
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
@@ -30,7 +29,9 @@ namespace WFT.Infra.Infrastructure.Repositories
         public virtual async Task<TEntity> AddAsync(TEntity entity)
         {
             await _dbSet.AddAsync(entity);
+
             await _context.SaveChangesAsync();
+
             return entity;
         }
 

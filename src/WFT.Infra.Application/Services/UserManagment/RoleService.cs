@@ -37,6 +37,13 @@ namespace WFT.Infra.Application.Services.UserManagment
             return _mapper.Map<RoleDto>(role);
         }
 
+        public async Task<RoleDto> GetByNameAsync(string name)
+        {
+            var role = await _roleRepository.GetByExpressionAsync(r => r.Name.Contains(name));
+
+            return _mapper.Map<RoleDto>(role);
+        }
+
         public async Task<IEnumerable<RoleDto>> GetAllAsync()
         {
             var roles = await _roleRepository.GetAllAsync();

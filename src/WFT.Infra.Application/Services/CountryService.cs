@@ -48,6 +48,13 @@ namespace WFT.Infra.Application.Services
             return _mapper.Map<CountryDto>(country);
         }
 
+        public virtual async Task<CountryDto> GetByNameAsync(string name)
+        {
+            var country = await _countryRepository.GetByExpressionAsync(c => c.Name.Contains(name));
+
+            return _mapper.Map<CountryDto>(country);
+        }
+
         public virtual async Task UpdateAsync(CountryDto dto)
         {
             var country = _mapper.Map<Country>(dto);

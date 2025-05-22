@@ -1,12 +1,12 @@
-using System.Security.Claims;
-using System.Threading.Tasks;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 
 namespace WFT.Infra.Application.Contracts.Interfaces
 {
     public interface IAuthService
     {
-        Task<UserDto> RegisterAsync(UserDto userDto, string password);
+        Task<UserDto> RegisterAsync(UserRegisterDto userDto);
         Task<string> LoginAsync(string username, string password);
+        Task<LoginResultDto> LoginAsync(UserLoginDto dto);
+        Task LogoutAsync(string token);
     }
-} 
+}

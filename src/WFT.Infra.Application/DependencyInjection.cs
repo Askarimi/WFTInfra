@@ -3,9 +3,11 @@ using System.Reflection;
 using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Application.Helper;
+using WFT.Infra.Application.InitialData;
 using WFT.Infra.Application.Services;
 using WFT.Infra.Application.Services.UserManagment;
 using WFT.Infra.Contracts.Interfaces;
+using WFT.Infra.Infrastructure.Services;
 
 namespace WFT.Infra.Application
 {
@@ -22,6 +24,8 @@ namespace WFT.Infra.Application
 
             // تنظیمات JwtTokenGenerator
             services.AddSingleton<JwtTokenGenerator>();
+
+
 
             services.AddAuthorizationCore(options =>
             {
@@ -48,6 +52,10 @@ namespace WFT.Infra.Application
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IWorkContext, WorkContext>();
+            services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<InitialDataSeeder>();
+
             #endregion
 
             return services;

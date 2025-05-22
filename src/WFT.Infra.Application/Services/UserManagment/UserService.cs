@@ -18,15 +18,13 @@ namespace WFT.Infra.Application.Services.UserManagment
         private readonly IRepository<Role> _roleRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IMapper _mapper;
-        private readonly ITokenService _tokenService;
 
 
         public UserService(IRepository<User> userRepository,
             IMapper mapper,
             IRepository<UserRole> userRoleRepository,
             IRepository<Role> roleRepository,
-            IPasswordHasher passwordHasher,
-            ITokenService tokenService
+            IPasswordHasher passwordHasher
             )
         {
             _mapper = mapper;
@@ -34,13 +32,22 @@ namespace WFT.Infra.Application.Services.UserManagment
             _userRoleRepository = userRoleRepository;
             _roleRepository = roleRepository;
             _passwordHasher = passwordHasher;
-            _tokenService = tokenService;
         }
         #endregion
 
-        public Task AssignRolesAsync(long userId, List<long> roleIds)
+        public virtual async Task AddRoleToUserAsync(long userId, List<long> roleIds)
         {
-            throw new NotImplementedException();
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null) throw new Exception("Role not found");
+
+            var rolePermissions = roleIds.Select(roleId => new UserRole
+            {
+                UserId = user.Id,
+                RoleId = roleId
+            }).ToList();
+
+            await _userRoleRepository.AddRangeAsync(rolePermissions);
         }
 
         public virtual async Task<UserDto> AddAsync(UserDto dto)
@@ -64,6 +71,20 @@ namespace WFT.Infra.Application.Services.UserManagment
         public virtual async Task<UserDto> GetByIdAsync(long id)
         {
             var user = await _userRepository.GetByIdAsync(id);
+            return _mapper.Map<UserDto>(user);
+        }
+
+        public virtual async Task<UserDto> GetByNameAsync(string name)
+        {
+            var user = await _userRepository.GetByExpressionAsync(u => u.FirstName.Contains(name) || u.LastName.Contains(name));
+
+            return _mapper.Map<UserDto>(user);
+        }
+
+        public virtual async Task<UserDto> GetByUsernameAsync(string username)
+        {
+            var user = await _userRepository.GetByExpressionAsync(u => u.Username.Contains(username));
+
             return _mapper.Map<UserDto>(user);
         }
 
@@ -144,47 +165,6 @@ namespace WFT.Infra.Application.Services.UserManagment
             await _userRepository.AddAsync(user);
 
             return user.Id;
-        }
-
-        public async Task<object> LoginAsync(UserLoginDto dto)
-        {
-            // بررسی وجود کاربر
-            // ایجاد یک شرط به صورت Expression
-            var predicate = (Expression<Func<User, bool>>)(u => u.Username == dto.UserName);
-
-            var user = await _userRepository.GetByExpressionAsync(predicate);
-
-            var userDto = _mapper.Map<UserDto>(user);
-
-            if (user == null)
-                throw new Exception("کاربری با این ایمیل یافت نشد.");
-
-            // بررسی رمز عبور
-            var isPasswordValid = _passwordHasher.VerifyPassword(dto.Password, user.PasswordHash);
-
-            if (!isPasswordValid)
-                throw new Exception("رمز عبور اشتباه است.");
-
-            if (!user.IsActive)
-                throw new Exception("حساب کاربری غیرفعال است.");
-
-            if (!user.EmailConfirmed)
-                throw new Exception("ایمیل تأیید نشده است.");
-
-            // تولید توکن
-            var token = _tokenService.GenerateTokenForUser(userDto);
-
-            // بازگرداندن اطلاعات کاربر و توکن
-            return new
-            {
-                Token = token,
-                User = new
-                {
-                    user.Id,
-                    user.Username,
-                    user.Email
-                }
-            };
         }
 
     }
