@@ -63,7 +63,17 @@ namespace WFT.Infra.WebApi.Controllers
                     Expires = DateTimeOffset.UtcNow.AddDays(7)
                 });
 
-                return await SuccessResponse(new { accesstoken = result.AccessToken }); // مثلاً توکن، اطلاعات کاربر و...
+                return await SuccessResponse(new
+                {
+                    accesstoken = result.AccessToken,
+                    user = new
+                    {
+                        id = result.User.Id,
+                        username = result.User.Username,
+                        firstname = result.User.FirstName,
+                        lastname = result.User.LastName,
+                    }
+                }); // مثلاً توکن، اطلاعات کاربر و...
             }
             catch (Exception ex)
             {
@@ -79,7 +89,7 @@ namespace WFT.Infra.WebApi.Controllers
 
             try
             {
-                var refreshToken = Request.Cookies["refreshToken"];
+                var refreshToken = Request.Cookies["refresh_Token"];
                 if (string.IsNullOrWhiteSpace(refreshToken))
                     return await ErrorResponse("توکن یافت نشد", 400);
 

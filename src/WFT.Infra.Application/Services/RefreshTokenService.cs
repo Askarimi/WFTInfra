@@ -46,15 +46,15 @@ namespace WFT.Infra.Application.Services
 
         public async Task RevokeAsync(string token)
         {
-            var rt = await GetByTokenAsync(token);
+            var rt = await _refreshTokenRepository.GetByExpressionAsync(x => x.Token == token); //await GetByTokenAsync(token);
 
             if (rt != null)
             {
                 rt.IsRevoked = true;
 
-                var refreshToken = _mapper.Map<RefreshToken>(rt);
+                //var refreshToken = _mapper.Map<RefreshToken>(rt);
 
-                await _refreshTokenRepository.UpdateAsync(refreshToken);
+                await _refreshTokenRepository.UpdateAsync(rt);
             }
         }
     }

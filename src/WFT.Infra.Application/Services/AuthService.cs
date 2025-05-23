@@ -58,6 +58,8 @@ namespace WFT.Infra.Infrastructure.Services
 
             var roles = await _userService.GetRolesForUserAsync(user.Id); // فرض بر اینکه این متد وجود داره
 
+            userDto.Roles = roles.Select(r => r.Name).ToList();
+
             var permissions = await _roleService.GetPermissionsForRoleAsync(roleIds: roles.Select(x => x.Id).ToList()); // فرض بر اینکه این متد وجود داره
 
             var accessToken = _jwtTokenGenerator.GenerateToken(
@@ -83,7 +85,9 @@ namespace WFT.Infra.Infrastructure.Services
             return new LoginResultDto
             {
                 AccessToken = accessToken,
-                RefreshToken = refreshToken
+                RefreshToken = refreshToken,
+                User = userDto,
+
             };
         }
 
