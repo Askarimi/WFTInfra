@@ -54,6 +54,7 @@ namespace WFT.Infra.Application
             services.AddScoped<IWorkContext, WorkContext>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<IAuthService, AuthService>();
+            // services.AddScoped(typeof(IPagedList<>), typeof(PagedList<>));
             services.AddScoped<InitialDataSeeder>();
 
             #endregion

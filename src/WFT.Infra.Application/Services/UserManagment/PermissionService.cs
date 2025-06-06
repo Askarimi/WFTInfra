@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using System.Linq.Expressions;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
+using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
+using WFT.Infra.Application.Contracts.Models;
 using WFT.Infra.Application.Contracts.Repositories;
 using WFT.Infra.Core.Entities.UserManagment;
 
@@ -74,6 +76,11 @@ namespace WFT.Infra.Application.Services.UserManagment
                 Name = p.Name,
                 DisplayName = p.DisplayName
             }).ToList();
+        }
+
+        public Task<IPagedList<PermissionDto>> GetPagedListAsync(PagedQueryRequest request)
+        {
+            throw new NotImplementedException();
         }
     }
 }

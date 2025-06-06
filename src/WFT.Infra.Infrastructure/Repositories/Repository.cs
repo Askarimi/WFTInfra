@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using WFT.Infra.Application.Contracts.Interfaces;
+using WFT.Infra.Application.Contracts.Models;
 using WFT.Infra.Application.Contracts.Repositories;
 using WFT.Infra.Core.Entities;
 using WFT.Infra.Infrastructure.Data;
@@ -24,6 +26,32 @@ namespace WFT.Infra.Infrastructure.Repositories
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
+        }
+
+        // پیاده‌سازی متد صفحه‌بندی (Pagination)
+        public async Task<IPagedList<TEntity>> GetPagedAsync(
+            Expression<Func<TEntity, bool>>? filter = null,
+            int pageNumber = 1,
+            int pageSize = 10
+        )
+        {
+            var query = _context.Set<TEntity>().AsQueryable();
+
+            // اعمال فیلتر در صورت وجود
+            if (filter != null)
+                query = query.Where(filter);
+
+            // تعداد کل رکوردها
+            var total = await query.CountAsync();
+
+            // اعمال صفحه‌بندی و دریافت داده‌ها
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();  // اینجا داده‌ها رو به لیست تبدیل می‌کنیم
+
+            // بازگشت داده‌ها در قالب PagedList
+            return new PagedList<TEntity>(items, total, pageNumber, pageSize);
         }
 
         public virtual async Task<TEntity> AddAsync(TEntity entity)
@@ -124,5 +152,7 @@ namespace WFT.Infra.Infrastructure.Repositories
 
         // متد TableNoTracking برای بهبود عملکرد در خواندن داده‌ها
         public IQueryable<TEntity> TableNoTracking => _dbSet.AsNoTracking().AsQueryable();
+
+
     }
 }

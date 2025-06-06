@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using WFT.Infra.Application.Contracts.Interfaces;
 
 namespace WFT.Infra.Application.Contracts.Repositories
 {
@@ -8,6 +9,13 @@ namespace WFT.Infra.Application.Contracts.Repositories
         Task<TEntity> GetByIdAsync(long id);
         // دریافت تمام موجودیت‌ها
         Task<IEnumerable<TEntity>> GetAllAsync();
+
+        // متد صفحه‌بندی (Pagination)
+        Task<IPagedList<TEntity>> GetPagedAsync(
+            Expression<Func<TEntity, bool>>? filter = null, // فیلتر دلخواه
+            int pageNumber = 1,
+            int pageSize = 10
+        );
         // اضافه کردن یک موجودیت
         Task<TEntity> AddAsync(TEntity entity);
         // اضافه کردن مجموعه‌ای از موجودیت‌ها

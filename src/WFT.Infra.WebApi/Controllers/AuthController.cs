@@ -72,6 +72,7 @@ namespace WFT.Infra.WebApi.Controllers
                         username = result.User.Username,
                         firstname = result.User.FirstName,
                         lastname = result.User.LastName,
+                        fullName = $"{result.User.FirstName} {result.User.LastName}",
                     }
                 }); // مثلاً توکن، اطلاعات کاربر و...
             }

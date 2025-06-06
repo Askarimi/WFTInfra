@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
+using WFT.Infra.Application.Contracts.Models;
 using WFT.Infra.Application.Contracts.Repositories;
 using WFT.Infra.Core.Entities.UserManagment;
 
@@ -66,6 +67,53 @@ namespace WFT.Infra.Application.Services.UserManagment
         {
             var users = await _userRepository.GetAllAsync();
             return _mapper.Map<IEnumerable<UserDto>>(users);
+        }
+        public async Task<IPagedList<UserDto>> GetPagedListAsync(PagedQueryRequest request)
+        {
+
+            // شروع از یک فیلتر پایه برای جستجوی عمومی
+            Expression<Func<User, bool>> filter = user =>
+                string.IsNullOrEmpty(request.SearchTerm) ||
+                user.Username.Contains(request.SearchTerm) ||
+                user.Email.Contains(request.SearchTerm) ||
+                user.FirstName.Contains(request.SearchTerm) ||
+                user.LastName.Contains(request.SearchTerm);
+
+            // اگر فیلترهای اضافی (Filters) وجود دارند، آن‌ها را اضافه می‌کنیم
+            if (request.Filters != null && request.Filters.Count > 0)
+            {
+                foreach (var filterItem in request.Filters)
+                {
+                    var property = typeof(User).GetProperty(filterItem.Key);
+                    if (property != null)
+                    {
+                        var param = Expression.Parameter(typeof(User), "user");
+                        var left = Expression.Property(param, property);
+                        var right = Expression.Constant(filterItem.Value);
+                        var equalExpression = Expression.Equal(left, right);
+
+                        // ترکیب فیلترهای قبلی با فیلتر جدید
+                        filter = Expression.Lambda<Func<User, bool>>(Expression.AndAlso(filter.Body, equalExpression), param);
+                    }
+                }
+            }
+
+            // دریافت داده‌ها با صفحه‌بندی
+            var result = await _userRepository.GetPagedAsync(filter, request.PageNumber, request.PageSize);
+
+            // تبدیل به UserDto
+            var userDtos = result.Items.Select(user => new UserDto
+            {
+                Username = user.Username,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                IsActive = user.IsActive,
+                LastLoginAt = user.LastLoginAt
+            }).ToList();
+
+            // بازگشت نتایج صفحه‌بندی‌شده
+            return new PagedList<UserDto>(userDtos.AsQueryable(), result.TotalCount, result.PageNumber, result.PageSize);
         }
 
         public virtual async Task<UserDto> GetByIdAsync(long id)
@@ -166,6 +214,7 @@ namespace WFT.Infra.Application.Services.UserManagment
 
             return user.Id;
         }
+
 
     }
 }

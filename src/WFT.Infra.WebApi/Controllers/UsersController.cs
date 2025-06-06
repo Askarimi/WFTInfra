@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
+using WFT.Infra.Application.Contracts.Models;
 using WFT.Infra.Contracts.Interfaces;
 
 namespace WFT.Infra.WebApi.Controllers
@@ -48,10 +49,25 @@ namespace WFT.Infra.WebApi.Controllers
         // READ ALL
         [HttpGet]
         [Route("List")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] PagedQueryRequest request)
         {
-            var users = await _userService.GetAllAsync();
-            return await SuccessResponse(users);
+
+            // بررسی ورودی‌ها (اختیاری: می‌توانید اعتبارسنجی کنید که PageNumber و PageSize بزرگتر از صفر باشند)
+            if (request.PageNumber <= 0)
+            {
+                return BadRequest("PageNumber must be greater than 0");
+            }
+
+            if (request.PageSize <= 0)
+            {
+                return BadRequest("PageSize must be greater than 0");
+            }
+
+            // استفاده از سرویس برای دریافت داده‌ها
+            var result = await _userService.GetPagedListAsync(request);
+
+            // بازگشت نتیجه صفحه‌بندی شده
+            return await SuccessResponse(result);
         }
 
         // UPDATE

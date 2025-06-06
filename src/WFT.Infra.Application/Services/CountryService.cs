@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using WFT.Infra.Application.Contracts.DTOs;
 using WFT.Infra.Application.Contracts.Interfaces;
+using WFT.Infra.Application.Contracts.Models;
 using WFT.Infra.Application.Contracts.Repositories;
 using WFT.Infra.Core.Entities;
 
@@ -53,6 +54,11 @@ namespace WFT.Infra.Application.Services
             var country = await _countryRepository.GetByExpressionAsync(c => c.Name.Contains(name));
 
             return _mapper.Map<CountryDto>(country);
+        }
+
+        public Task<IPagedList<CountryDto>> GetPagedListAsync(PagedQueryRequest request)
+        {
+            throw new NotImplementedException();
         }
 
         public virtual async Task UpdateAsync(CountryDto dto)
