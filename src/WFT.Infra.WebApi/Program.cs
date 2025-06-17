@@ -2,6 +2,7 @@
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.InitialData;
 using WFT.Infra.Application.Settings;
 using WFT.Infra.Bootstrapper;
@@ -108,6 +109,11 @@ using (var scope = app.Services.CreateScope())
 {
     var seeder = scope.ServiceProvider.GetRequiredService<InitialDataSeeder>();
     await seeder.SeedAsync();
+
+    //اجرای خودکار مایگریشن توسط سرویسی که به این منظور پیاده سازی شده است
+    var migrator = scope.ServiceProvider.GetRequiredService<IDatabaseInitializer>();
+
+    migrator.Initialize();
 }
 
 app.MapControllers();
