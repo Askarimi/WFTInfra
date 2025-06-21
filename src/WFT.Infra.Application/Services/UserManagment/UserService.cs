@@ -104,6 +104,7 @@ namespace WFT.Infra.Application.Services.UserManagment
             // تبدیل به UserDto
             var userDtos = result.Items.Select(user => new UserDto
             {
+                Id = user.Id,
                 Username = user.Username,
                 Email = user.Email,
                 FirstName = user.FirstName,
