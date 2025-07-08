@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WFT.Infra.Application.Contracts.Interfaces;
+﻿using WFT.Infra.Application.Contracts.Interfaces;
 
 namespace WFT.Infra.Application.Helper
 {
-    public partial class PasswordHasher: IPasswordHasher
+    public partial class PasswordHasher : IPasswordHasher
     {
         public string HashPassword(string password)
         {
@@ -17,6 +12,16 @@ namespace WFT.Infra.Application.Helper
         public bool VerifyPassword(string password, string hashedPassword)
         {
             return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
+        }
+
+        public string GenerateSalt()
+        {
+            using (var rng = new System.Security.Cryptography.RNGCryptoServiceProvider())
+            {
+                byte[] salt = new byte[32]; // Salt طول 32 بایت
+                rng.GetBytes(salt);
+                return Convert.ToBase64String(salt);
+            }
         }
     }
 }

@@ -11,6 +11,7 @@ namespace WFT.Infra.Application.Mapping.Profiles.UserManagmentProfile
             CreateMap<UserDto, UserRegisterDto>().ReverseMap();
             CreateMap<Role, RoleDto>().ReverseMap();
             CreateMap<Permission, PermissionDto>().ReverseMap();
+            CreateMap<UserPassword, UserPasswordDto>().ReverseMap();
         }
     }
 }

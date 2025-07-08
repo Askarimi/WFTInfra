@@ -21,7 +21,7 @@ namespace WFT.Infra.Infrastructure.Services
         private readonly IRoleService _roleService;
         private readonly ITokenService _tokenService;
         private readonly IRefreshTokenService _refreshTokenService;
-
+        private readonly IUserPasswordService _userPasswordService;
         public AuthService(IRepository<User> userRepository, IPasswordHasher passwordHasher,
                           IJwtTokenGenerator jwtTokenGenerator,
                           IMapper mapper,
@@ -29,7 +29,8 @@ namespace WFT.Infra.Infrastructure.Services
                           IUserService userService,
                           IRoleService roleService,
                           ITokenService tokenService,
-                          IRefreshTokenService refreshTokenService
+                          IRefreshTokenService refreshTokenService,
+                          IUserPasswordService userPasswordService
                           )
         {
             _userRepository = userRepository;
@@ -41,6 +42,7 @@ namespace WFT.Infra.Infrastructure.Services
             _roleService = roleService;
             _tokenService = tokenService;
             _refreshTokenService = refreshTokenService;
+            _userPasswordService = userPasswordService;
         }
 
 
@@ -48,12 +50,14 @@ namespace WFT.Infra.Infrastructure.Services
         {
             var user = await _userRepository.GetByExpressionAsync(u => u.Username == dto.UserName);
 
-            var userDto = _mapper.Map<UserDto>(user);
-
             if (user == null)
                 throw new Exception("User not found");
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+            var userPassword = await _userPasswordService.GetPasswordByUserIdAsync(user.Id);
+
+            var userDto = _mapper.Map<UserDto>(user);
+
+            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, userPassword.PasswordHash))
                 throw new UnauthorizedAccessException("نام کاربری یا رمز عبور اشتباه است.");
 
             var roles = await _userService.GetRolesForUserAsync(user.Id); // فرض بر اینکه این متد وجود داره
@@ -70,7 +74,7 @@ namespace WFT.Infra.Infrastructure.Services
             );
 
             // 2. ساخت Refresh Token
-            var refreshToken = GenerateSecureToken(); // 👈 متد پایین رو ببین
+            var refreshToken = GenerateSecureToken();
 
             var refreshTokenDto = new RefreshTokenDto
             {
