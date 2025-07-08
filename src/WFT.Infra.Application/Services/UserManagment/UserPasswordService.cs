@@ -27,16 +27,9 @@ namespace WFT.Infra.Application.Services.UserManagment
         #endregion
         public async Task<UserPasswordDto> AddAsync(UserPasswordDto dto)
         {
-
-            var salt = _passwordHasher.GenerateSalt();
-
-            var passwordSalt = $"{dto.Password}{salt}";
-
-            var passwordHash = _passwordHasher.HashPassword(passwordSalt);
+            var passwordHash = _passwordHasher.HashPassword(dto.Password);
 
             dto.PasswordHash = passwordHash;
-
-            dto.PasswordSalt = salt;
 
             var userPassword = _mapper.Map<UserPassword>(dto);
 
@@ -44,7 +37,6 @@ namespace WFT.Infra.Application.Services.UserManagment
 
             return _mapper.Map<UserPasswordDto>(userPassword);
         }
-
 
         public async Task<UserPasswordDto> GetPasswordByUserIdAsync(long userId)
         {

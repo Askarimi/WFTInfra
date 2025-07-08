@@ -19,13 +19,14 @@ namespace WFT.Infra.Application.Services.UserManagment
         private readonly IRepository<Role> _roleRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IMapper _mapper;
-
+        private readonly IUserPasswordService _userPasswordService;
 
         public UserService(IRepository<User> userRepository,
             IMapper mapper,
             IRepository<UserRole> userRoleRepository,
             IRepository<Role> roleRepository,
-            IPasswordHasher passwordHasher
+            IPasswordHasher passwordHasher,
+            IUserPasswordService userPasswordService
             )
         {
             _mapper = mapper;
@@ -33,6 +34,7 @@ namespace WFT.Infra.Application.Services.UserManagment
             _userRoleRepository = userRoleRepository;
             _roleRepository = roleRepository;
             _passwordHasher = passwordHasher;
+            _userPasswordService = userPasswordService;
         }
         #endregion
 
@@ -205,13 +207,24 @@ namespace WFT.Infra.Application.Services.UserManagment
             {
                 Username = dto.Username,
                 Email = dto.Email,
-                PasswordHash = _passwordHasher.HashPassword(dto.Password), // هش کردن پسورد
+                // PasswordHash = _passwordHasher.HashPassword(dto.Password), // هش کردن پسورد
                 EmailConfirmed = false, // در این حالت کاربر باید ایمیل خودش رو تأیید کنه
                 IsActive = false, // این مورد هم باید منتظر تأیید ایمیل بمونه
+
             };
+
 
             // اضافه کردن کاربر به دیتابیس
             await _userRepository.AddAsync(user);
+
+            var userPassword = new UserPasswordDto
+            {
+                UserId = user.Id,
+
+                PasswordHash = _passwordHasher.HashPassword(dto.Password),
+            };
+
+            await _userPasswordService.AddAsync(userPassword);
 
             return user.Id;
         }

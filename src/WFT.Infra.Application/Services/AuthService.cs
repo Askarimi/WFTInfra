@@ -57,6 +57,7 @@ namespace WFT.Infra.Infrastructure.Services
 
             var userDto = _mapper.Map<UserDto>(user);
 
+
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, userPassword.PasswordHash))
                 throw new UnauthorizedAccessException("نام کاربری یا رمز عبور اشتباه است.");
 
@@ -104,7 +105,9 @@ namespace WFT.Infra.Infrastructure.Services
             if (user == null)
                 throw new Exception("User not found");
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            var userPassword = await _userPasswordService.GetPasswordByUserIdAsync(user.Id);
+
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, userPassword.PasswordHash))
                 throw new UnauthorizedAccessException("نام کاربری یا رمز عبور اشتباه است.");
 
             var roles = await _userService.GetRolesForUserAsync(user.Id); // فرض بر اینکه این متد وجود داره
@@ -138,8 +141,17 @@ namespace WFT.Infra.Infrastructure.Services
         {
             var user = _mapper.Map<User>(userDto);
 
-            // ?? ???? ?????
-            user.PasswordHash = _passwordHasher.HashPassword(userDto.Password);
+            var passSalt = _passwordHasher.GenerateSalt();
+
+            var userPassword = new UserPasswordDto
+            {
+                UserId = user.Id,
+                PasswordHash = _passwordHasher.HashPassword(userDto.Password),
+            };
+
+            await _userPasswordService.AddAsync(userPassword);
+
+            //user.PasswordHash = _passwordHasher.HashPassword(userDto.Password);
 
             await _userRepository.AddAsync(user);
 

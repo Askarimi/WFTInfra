@@ -229,10 +229,6 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -246,6 +242,44 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.UserPassword", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("LastChangedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserPasswords");
                 });
 
             modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.UserRole", b =>
@@ -302,6 +336,17 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.UserPassword", b =>
+                {
+                    b.HasOne("WFT.Infra.Core.Entities.UserManagment.User", "User")
+                        .WithOne("Password")
+                        .HasForeignKey("WFT.Infra.Core.Entities.UserManagment.UserPassword", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.UserRole", b =>
                 {
                     b.HasOne("WFT.Infra.Core.Entities.UserManagment.Role", "Role")
@@ -335,6 +380,9 @@ namespace WFT.Infra.Infrastructure.Migrations
 
             modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.User", b =>
                 {
+                    b.Navigation("Password")
+                        .IsRequired();
+
                     b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618
