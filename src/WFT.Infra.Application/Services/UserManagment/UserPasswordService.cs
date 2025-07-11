@@ -2,7 +2,6 @@
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
-using WFT.Infra.Application.Contracts.Models;
 using WFT.Infra.Application.Contracts.Repositories;
 using WFT.Infra.Core.Entities.UserManagment;
 
@@ -25,12 +24,9 @@ namespace WFT.Infra.Application.Services.UserManagment
         }
 
         #endregion
-        public async Task<UserPasswordDto> AddAsync(UserPasswordDto dto)
+
+        public async Task<UserPasswordDto> CreatePassword(UserPasswordDto dto)
         {
-            var passwordHash = _passwordHasher.HashPassword(dto.Password);
-
-            dto.PasswordHash = passwordHash;
-
             var userPassword = _mapper.Map<UserPassword>(dto);
 
             await _userPasswordRepository.AddAsync(userPassword);
@@ -43,36 +39,6 @@ namespace WFT.Infra.Application.Services.UserManagment
             var userPassword = await _userPasswordRepository.GetByExpressionAsync(up => up.UserId == userId);
 
             return _mapper.Map<UserPasswordDto>(userPassword);
-        }
-
-        public Task DeleteAsync(long id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<UserPasswordDto>> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<UserPasswordDto> GetByIdAsync(long id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<UserPasswordDto> GetByNameAsync(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IPagedList<UserPasswordDto>> GetPagedListAsync(PagedQueryRequest request)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateAsync(UserPasswordDto dto)
-        {
-            throw new NotImplementedException();
         }
     }
 }

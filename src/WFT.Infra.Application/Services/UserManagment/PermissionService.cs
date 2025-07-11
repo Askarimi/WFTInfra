@@ -56,13 +56,17 @@ namespace WFT.Infra.Application.Services.UserManagment
             return _mapper.Map<PermissionDto>(permission);
         }
 
-        public virtual async Task UpdateAsync(PermissionDto dto)
+        public virtual async Task<PermissionDto> UpdateAsync(PermissionDto dto)
         {
             var existing = await _permissionRepository.GetByIdAsync(dto.Id);
+
             if (existing == null) throw new Exception("Permission not found");
 
             _mapper.Map(dto, existing);
+
             await _permissionRepository.UpdateAsync(existing);
+
+            return _mapper.Map<PermissionDto>(existing);
         }
 
         public virtual async Task<IEnumerable<PermissionDto>> GetActivePermissionsAsync()
@@ -70,17 +74,44 @@ namespace WFT.Infra.Application.Services.UserManagment
             Expression<Func<Permission, bool>> predicate = p => p.IsActive;
             var permissions = await _permissionRepository.GetListByExpressionAsync(predicate);
 
-            return permissions.Select(p => new PermissionDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                DisplayName = p.DisplayName
-            }).ToList();
+            return _mapper.Map<IEnumerable<PermissionDto>>(permissions);
         }
 
-        public Task<IPagedList<PermissionDto>> GetPagedListAsync(PagedQueryRequest request)
+        public async Task<IPagedList<PermissionDto>> GetPagedListAsync(PagedQueryRequest request)
         {
-            throw new NotImplementedException();
+            // شروع از یک فیلتر پایه برای جستجوی عمومی
+            Expression<Func<Permission, bool>> filter = permission =>
+                string.IsNullOrEmpty(request.SearchTerm) ||
+                permission.Name.Contains(request.SearchTerm) ||
+                permission.DisplayName.Contains(request.SearchTerm);
+
+            // اگر فیلترهای اضافی (Filters) وجود دارند، آن‌ها را اضافه می‌کنیم
+            if (request.Filters != null && request.Filters.Count > 0)
+            {
+                foreach (var filterItem in request.Filters)
+                {
+                    var property = typeof(Permission).GetProperty(filterItem.Key);
+                    if (property != null)
+                    {
+                        var param = Expression.Parameter(typeof(Permission), "permission");
+                        var left = Expression.Property(param, property);
+                        var right = Expression.Constant(filterItem.Value);
+                        var equalExpression = Expression.Equal(left, right);
+
+                        // ترکیب فیلترهای قبلی با فیلتر جدید
+                        filter = Expression.Lambda<Func<Permission, bool>>(Expression.AndAlso(filter.Body, equalExpression), param);
+                    }
+                }
+            }
+
+            // دریافت داده‌ها با صفحه‌بندی
+            var result = await _permissionRepository.GetPagedAsync(filter, request.PageNumber, request.PageSize);
+
+            // تبدیل به PermissionDto با استفاده از AutoMapper
+            var permissionDtos = _mapper.Map<IEnumerable<PermissionDto>>(result.Items);
+
+            // بازگشت نتایج صفحه‌بندی‌شده
+            return new PagedList<PermissionDto>(permissionDtos, result.TotalCount, result.PageNumber, result.PageSize);
         }
     }
 }

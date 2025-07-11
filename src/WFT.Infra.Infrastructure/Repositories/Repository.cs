@@ -72,10 +72,29 @@ namespace WFT.Infra.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public virtual async Task UpdateAsync(TEntity entity)
+        public virtual async Task<TEntity> UpdateAsync(TEntity entity)
         {
-            _context.Entry(entity).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+
+            // ابتدا رکورد موجود را با شناسه آن پیدا می‌کنیم
+            var existingEntity = await _context.Set<TEntity>().FindAsync(entity.Id);
+
+            if (existingEntity == null)
+                throw new Exception("Entity not found.");
+
+            _context.Entry(existingEntity).CurrentValues.SetValues(entity);
+
+            try
+            {
+
+                await _context.SaveChangesAsync();
+
+                return existingEntity;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+
+                throw new Exception("این رکورد توسط کاربر دیگری ویرایش یا حذف شده است.");
+            }
         }
 
         public virtual async Task DeleteAsync(long id)

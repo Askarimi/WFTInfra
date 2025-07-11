@@ -21,7 +21,7 @@ namespace WFT.Infra.Application.Contracts.Repositories
         // اضافه کردن مجموعه‌ای از موجودیت‌ها
         Task AddRangeAsync(IEnumerable<TEntity> entities);
         // به‌روزرسانی یک موجودیت
-        Task UpdateAsync(TEntity entity);
+        Task<TEntity> UpdateAsync(TEntity entity);
         // حذف یک موجودیت
         Task DeleteAsync(long id);
         // حذف مجموعه‌ای از موجودیت‌ها

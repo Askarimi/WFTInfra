@@ -66,7 +66,7 @@ namespace WFT.Infra.Application.Services.UserManagment
             {
                 foreach (var filterItem in request.Filters)
                 {
-                    var property = typeof(User).GetProperty(filterItem.Key);
+                    var property = typeof(Role).GetProperty(filterItem.Key);
                     if (property != null)
                     {
                         var param = Expression.Parameter(typeof(Role), "role");
@@ -83,18 +83,11 @@ namespace WFT.Infra.Application.Services.UserManagment
             // دریافت داده‌ها با صفحه‌بندی
             var result = await _roleRepository.GetPagedAsync(filter, request.PageNumber, request.PageSize);
 
-            // تبدیل به UserDto
-            var userDtos = result.Items.Select(user => new RoleDto
-            {
-                Id = user.Id,
-                Name = user.Name,
-                Description = user.Description,
-                IsActive = user.IsActive
-            }).ToList();
-
+            // تبدیل به RoleDto با استفاده از AutoMapper
+            var roleDtos = _mapper.Map<IEnumerable<RoleDto>>(result.Items);
 
             // بازگشت نتایج صفحه‌بندی‌شده
-            return new PagedList<RoleDto>(userDtos, result.TotalCount, result.PageNumber, result.PageSize);
+            return new PagedList<RoleDto>(roleDtos, result.TotalCount, result.PageNumber, result.PageSize);
         }
 
         public async Task<RoleDto> AddAsync(RoleDto roleDto)
@@ -104,10 +97,13 @@ namespace WFT.Infra.Application.Services.UserManagment
             return _mapper.Map<RoleDto>(role);
         }
 
-        public async Task UpdateAsync(RoleDto roleDto)
+        public async Task<RoleDto> UpdateAsync(RoleDto roleDto)
         {
             var role = _mapper.Map<Role>(roleDto);
+
             await _roleRepository.UpdateAsync(role);
+
+            return _mapper.Map<RoleDto>(role);
         }
 
         public async Task DeleteAsync(long id)
@@ -161,15 +157,8 @@ namespace WFT.Infra.Application.Services.UserManagment
             // جستجو در Permission با استفاده از شرط داینامیک
             var permissions = await _permissionRepository.GetListByExpressionAsync(permissionCondition);
 
-            // تبدیل Permissions به PermissionDto
-            var permissionsDto = permissions.Select(p => new PermissionDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                DisplayName = p.DisplayName
-            }).ToList(); // تبدیل به لیست برای بازگشت صحیح
-
-            return permissionsDto;
+            // تبدیل Permissions به PermissionDto با استفاده از AutoMapper
+            return _mapper.Map<IEnumerable<PermissionDto>>(permissions);
         }
 
         public virtual async Task<IEnumerable<RoleDto>> GetActiveRolesAsync()
@@ -181,16 +170,8 @@ namespace WFT.Infra.Application.Services.UserManagment
             // جستجو در Role با استفاده از شرط داینامیک
             var activeRoles = await _roleRepository.GetListByExpressionAsync(predicate);
 
-            // تبدیل رول‌ها به RoleDto
-            var roleDtos = activeRoles.Select(role => new RoleDto
-            {
-                Id = role.Id,
-                Name = role.Name,
-                Description = role.Description,
-                IsActive = role.IsActive
-            }).ToList(); // تبدیل به لیست برای بازگشت صحیح
-
-            return roleDtos;
+            // تبدیل رول‌ها به RoleDto با استفاده از AutoMapper
+            return _mapper.Map<IEnumerable<RoleDto>>(activeRoles);
         }
 
         public virtual async Task<IEnumerable<PermissionDto>> GetPermissionsForRoleAsync(List<long> roleIds)
@@ -203,12 +184,7 @@ namespace WFT.Infra.Application.Services.UserManagment
             var permissions = await _permissionRepository
                 .GetListByExpressionAsync(p => permissionIds.Contains(p.Id));
 
-            return permissions.Select(p => new PermissionDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                DisplayName = p.DisplayName
-            });
+            return _mapper.Map<IEnumerable<PermissionDto>>(permissions);
         }
     }
 }

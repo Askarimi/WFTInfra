@@ -149,7 +149,7 @@ namespace WFT.Infra.Infrastructure.Services
                 PasswordHash = _passwordHasher.HashPassword(userDto.Password),
             };
 
-            await _userPasswordService.AddAsync(userPassword);
+            await _userPasswordService.CreatePassword(userPassword);
 
             //user.PasswordHash = _passwordHasher.HashPassword(userDto.Password);
 

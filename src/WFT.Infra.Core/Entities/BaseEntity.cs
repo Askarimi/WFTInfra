@@ -1,3 +1,5 @@
+﻿using System.ComponentModel.DataAnnotations;
+
 namespace WFT.Infra.Core.Entities
 {
     public partial class BaseEntity
@@ -7,6 +9,9 @@ namespace WFT.Infra.Core.Entities
         public DateTime? UpdatedAt { get; set; }
         public long CreatedUserId { get; set; }
         public long? UpdatedUserId { get; set; }
+
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
 
         protected BaseEntity()
         {

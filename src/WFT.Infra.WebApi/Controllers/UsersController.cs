@@ -78,9 +78,9 @@ namespace WFT.Infra.WebApi.Controllers
             if (!ModelState.IsValid)
                 return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
 
-            await _userService.UpdateAsync(request);
+            var result = await _userService.UpdateAsync(request);
 
-            return await NoContentResponse();
+            return await SuccessResponse(result);
         }
 
         // DELETE

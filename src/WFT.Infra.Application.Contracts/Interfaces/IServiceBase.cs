@@ -9,7 +9,7 @@ namespace WFT.Infra.Application.Contracts.Interfaces
         Task<IPagedList<TDto>> GetPagedListAsync(PagedQueryRequest request);
         Task<TDto> GetByNameAsync(string name);
         Task<TDto> AddAsync(TDto dto);
-        Task UpdateAsync(TDto dto);
+        Task<TDto> UpdateAsync(TDto dto);
         Task DeleteAsync(long id);
     }
 }

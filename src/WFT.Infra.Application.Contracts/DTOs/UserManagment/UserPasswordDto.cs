@@ -5,7 +5,6 @@
         // کلید خارجی که به کاربر مربوطه اشاره می‌کند
         public long UserId { get; set; }
 
-        public string Password { get; set; }
         // پسورد هش شده
         public string PasswordHash { get; set; }
 

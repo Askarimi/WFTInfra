@@ -103,20 +103,11 @@ namespace WFT.Infra.Application.Services.UserManagment
             // دریافت داده‌ها با صفحه‌بندی
             var result = await _userRepository.GetPagedAsync(filter, request.PageNumber, request.PageSize);
 
-            // تبدیل به UserDto
-            var userDtos = result.Items.Select(user => new UserDto
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                IsActive = user.IsActive,
-                LastLoginAt = user.LastLoginAt
-            }).ToList();
+            // تبدیل به UserDto با استفاده از AutoMapper
+            var userDtos = _mapper.Map<IEnumerable<UserDto>>(result.Items);
 
             // بازگشت نتایج صفحه‌بندی‌شده
-            return new PagedList<UserDto>(userDtos.AsQueryable(), result.TotalCount, result.PageNumber, result.PageSize);
+            return new PagedList<UserDto>(userDtos, result.TotalCount, result.PageNumber, result.PageSize);
         }
 
         public virtual async Task<UserDto> GetByIdAsync(long id)
@@ -139,10 +130,14 @@ namespace WFT.Infra.Application.Services.UserManagment
             return _mapper.Map<UserDto>(user);
         }
 
-        public virtual async Task UpdateAsync(UserDto dto)
+        public virtual async Task<UserDto> UpdateAsync(UserDto dto)
         {
             var user = _mapper.Map<User>(dto);
+
             await _userRepository.UpdateAsync(user);
+
+            return _mapper.Map<UserDto>(user);
+
         }
 
         public virtual async Task<IEnumerable<RoleDto>> GetRolesForUserAsync(long userId)
@@ -159,16 +154,8 @@ namespace WFT.Infra.Application.Services.UserManagment
             // پیدا کردن خود Roleها
             var roles = await _roleRepository.GetListByExpressionAsync(r => roleIds.Contains(r.Id));
 
-            // تبدیل به DTO
-            var roleDtos = roles.Select(r => new RoleDto
-            {
-                Id = r.Id,
-                Name = r.Name,
-                Description = r.Description,
-                IsActive = r.IsActive
-            });
-
-            return roleDtos;
+            // تبدیل به DTO با استفاده از AutoMapper
+            return _mapper.Map<IEnumerable<RoleDto>>(roles);
         }
 
         public async Task<bool> HasPermissionAsync(long userId, string permissionName)
@@ -202,17 +189,9 @@ namespace WFT.Infra.Application.Services.UserManagment
             if (existingUser != null)
                 throw new Exception("User with this email already exists.");
 
-            // ساختن کاربر جدید
-            var user = new User
-            {
-                Username = dto.Username,
-                Email = dto.Email,
-                // PasswordHash = _passwordHasher.HashPassword(dto.Password), // هش کردن پسورد
-                EmailConfirmed = false, // در این حالت کاربر باید ایمیل خودش رو تأیید کنه
-                IsActive = false, // این مورد هم باید منتظر تأیید ایمیل بمونه
+            var userdto = _mapper.Map<UserDto>(dto);
 
-            };
-
+            var user = _mapper.Map<User>(userdto);
 
             // اضافه کردن کاربر به دیتابیس
             await _userRepository.AddAsync(user);
@@ -224,7 +203,7 @@ namespace WFT.Infra.Application.Services.UserManagment
                 PasswordHash = _passwordHasher.HashPassword(dto.Password),
             };
 
-            await _userPasswordService.AddAsync(userPassword);
+            await _userPasswordService.CreatePassword(userPassword);
 
             return user.Id;
         }
