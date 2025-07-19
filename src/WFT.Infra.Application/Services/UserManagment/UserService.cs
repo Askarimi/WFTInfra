@@ -199,11 +199,11 @@ namespace WFT.Infra.Application.Services.UserManagment
             var userPassword = new UserPasswordDto
             {
                 UserId = user.Id,
-
-                PasswordHash = _passwordHasher.HashPassword(dto.Password),
+                Password = dto.Password,
+                ConfirmPassword = dto.Password
             };
 
-            await _userPasswordService.CreatePassword(userPassword);
+            await _userPasswordService.SetPasswordAsync(userPassword);
 
             return user.Id;
         }

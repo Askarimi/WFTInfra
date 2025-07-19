@@ -2,9 +2,16 @@
 
 namespace WFT.Infra.Application.Contracts.Interfaces.UserManagment
 {
-    public interface IUserPasswordService
+    public interface IUserPasswordService : IServiceBase<UserPasswordDto>
     {
         Task<UserPasswordDto> CreatePassword(UserPasswordDto dto);
-        public Task<UserPasswordDto> GetPasswordByUserIdAsync(long userId);
+        Task<UserPasswordDto> GetPasswordByUserIdAsync(long userId);
+        
+        // New methods for password management
+        Task<bool> SetPasswordAsync(UserPasswordDto request);
+        Task<bool> ChangePasswordAsync(UserPasswordDto request);
+        
+        // Method for authentication (returns password hash)
+        Task<UserPasswordAuthDto> GetPasswordForAuthAsync(long userId);
     }
 }
