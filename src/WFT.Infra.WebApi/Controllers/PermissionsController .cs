@@ -1,59 +1,94 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
-using WFT.Infra.Core.Entities.UserManagment;
+using WFT.Infra.Application.Contracts.Models;
+using WFT.Infra.Contracts.Interfaces;
 
-
-namespace WFT.Infra.WebApi.Controllers;
-
-public class PermissionssController : BaseController
+namespace WFT.Infra.WebApi.Controllers
 {
-    private readonly IPermissionService _permissionService;
-
-    public PermissionssController(IPermissionService permissionService)
+    public class PermissionsController : BaseController
     {
-        _permissionService = permissionService;
-    }
+        private readonly IPermissionService _permissionService;
+        private readonly IWorkContext _workContext;
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var permissions = await _permissionService.GetAllAsync();
-        return await SuccessResponse(permissions);
-    }
+        public PermissionsController(IPermissionService permissionService, IWorkContext workContext)
+        {
+            _permissionService = permissionService;
+            _workContext = workContext;
+        }
 
-    [HttpGet("{id:long}")]
-    public override async Task<IActionResult> GetById(int id)
-    {
-        var permission = await _permissionService.GetByIdAsync(id);
-        if (permission == null)
-            return await ErrorResponse("Permissions not found", 404);
+        // CREATE
+        [HttpPost]
+        [Route("Add")]
+        public async Task<IActionResult> Add([FromBody] PermissionDto request)
+        {
+            if (!ModelState.IsValid)
+                return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
 
-        return await SuccessResponse(permission);
-    }
+            request.CreatedUserId = _workContext.UserId.Value;
 
-    [HttpPost]
-    public async Task<IActionResult> Create(PermissionDto permissionDto)
-    {
-        var result = await _permissionService.AddAsync(permissionDto);
+            var permission = await _permissionService.AddAsync(request);
+            var result = await _permissionService.GetByIdAsync(permission.Id);
 
-        return await CreatedResponse(nameof(GetById), new { id = result.Id }, result);
-    }
+            return await CreatedResponse(nameof(GetById), new { id = permission.Id }, result);
+        }
 
-    [HttpPut("{id:long}")]
-    public async Task<IActionResult> Update(long id, PermissionDto permissionDto)
-    {
-       await _permissionService.UpdateAsync( permissionDto);
-        
+        // READ BY ID
+        [HttpGet]
+        [Route("init/{id:long}")]
+        public override async Task<IActionResult> GetById(int id)
+        {
+            var permission = await _permissionService.GetByIdAsync(id);
+            if (permission == null)
+                return await ErrorResponse("دسترسی یافت نشد.", 404);
 
-        return await NoContentResponse();
-    }
+            return await SuccessResponse(permission);
+        }
 
-    [HttpDelete("{id:long}")]
-    public async Task<IActionResult> Delete(long id)
-    {
-         await _permissionService.DeleteAsync(id);
+        // READ ALL
+        [HttpGet]
+        [Route("List")]
+        public async Task<IActionResult> List([FromQuery] PagedQueryRequest request)
+        {
+            // بررسی ورودی‌ها (اختیاری: می‌توانید اعتبارسنجی کنید که PageNumber و PageSize بزرگتر از صفر باشند)
+            if (request.PageNumber <= 0)
+            {
+                return BadRequest("PageNumber must be greater than 0");
+            }
 
-        return await NoContentResponse();
+            if (request.PageSize <= 0)
+            {
+                return BadRequest("PageSize must be greater than 0");
+            }
+
+            // استفاده از سرویس برای دریافت داده‌ها
+            var result = await _permissionService.GetPagedListAsync(request);
+
+            // بازگشت نتیجه صفحه‌بندی شده
+            return await SuccessResponse(result);
+        }
+
+        // UPDATE
+        [HttpPut]
+        [Route("update")]
+        public async Task<IActionResult> Update([FromBody] PermissionDto request)
+        {
+            if (!ModelState.IsValid)
+                return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
+
+            var result = await _permissionService.UpdateAsync(request);
+
+            return await SuccessResponse(result);
+        }
+
+        // DELETE
+        [HttpDelete]
+        [Route("delete/{id:long}")]
+        public async Task<IActionResult> Delete(long id)
+        {
+            await _permissionService.DeleteAsync(id);
+
+            return await NoContentResponse();
+        }
     }
 }
