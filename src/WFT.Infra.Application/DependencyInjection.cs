@@ -62,6 +62,9 @@ namespace WFT.Infra.Application
             services.AddScoped<IAttributeService, AttributeService>();
             services.AddScoped<IConditionOperatorService, ConditionOperatorService>();
             services.AddScoped<IAttributeGroupService, AttributeGroupService>();
+            
+            // Authorization Service
+            services.AddScoped<IAuthorizationService, AuthorizationService>();
             // services.AddScoped(typeof(IPagedList<>), typeof(PagedList<>));
             services.AddScoped<InitialDataSeeder>();
 

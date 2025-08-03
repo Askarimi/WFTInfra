@@ -86,16 +86,32 @@ namespace WFT.Infra.Application.Services.UserManagment
             {
                 foreach (var filterItem in request.Filters)
                 {
-                    var property = typeof(User).GetProperty(filterItem.Key);
-                    if (property != null)
+                    // Handle special AccessibleUserIds filter
+                    if (filterItem.Key == "AccessibleUserIds" && filterItem.Value is IEnumerable<long> accessibleUserIds)
                     {
                         var param = Expression.Parameter(typeof(User), "user");
-                        var left = Expression.Property(param, property);
-                        var right = Expression.Constant(filterItem.Value);
-                        var equalExpression = Expression.Equal(left, right);
+                        var idProperty = Expression.Property(param, "Id");
+                        var containsMethod = typeof(Enumerable).GetMethods()
+                            .First(m => m.Name == "Contains" && m.GetParameters().Length == 2)
+                            .MakeGenericMethod(typeof(long));
+                        var containsCall = Expression.Call(containsMethod, Expression.Constant(accessibleUserIds), idProperty);
+                        
+                        filter = Expression.Lambda<Func<User, bool>>(
+                            Expression.AndAlso(filter.Body, containsCall), param);
+                    }
+                    else
+                    {
+                        var property = typeof(User).GetProperty(filterItem.Key);
+                        if (property != null)
+                        {
+                            var param = Expression.Parameter(typeof(User), "user");
+                            var left = Expression.Property(param, property);
+                            var right = Expression.Constant(filterItem.Value);
+                            var equalExpression = Expression.Equal(left, right);
 
-                        // ترکیب فیلترهای قبلی با فیلتر جدید
-                        filter = Expression.Lambda<Func<User, bool>>(Expression.AndAlso(filter.Body, equalExpression), param);
+                            // ترکیب فیلترهای قبلی با فیلتر جدید
+                            filter = Expression.Lambda<Func<User, bool>>(Expression.AndAlso(filter.Body, equalExpression), param);
+                        }
                     }
                 }
             }
