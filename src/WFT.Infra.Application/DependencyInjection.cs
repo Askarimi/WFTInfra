@@ -55,6 +55,13 @@ namespace WFT.Infra.Application
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserPasswordService, UserPasswordService>();
+            
+            // ABAC Services
+            services.AddScoped<IABACService, ABACService>();
+            services.AddScoped<IPolicyRuleService, PolicyRuleService>();
+            services.AddScoped<IAttributeService, AttributeService>();
+            services.AddScoped<IConditionOperatorService, ConditionOperatorService>();
+            services.AddScoped<IAttributeGroupService, AttributeGroupService>();
             // services.AddScoped(typeof(IPagedList<>), typeof(PagedList<>));
             services.AddScoped<InitialDataSeeder>();
 

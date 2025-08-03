@@ -1,21 +1,18 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 
 namespace WFT.Infra.Application.Permissions
 {
-    public partial class PermissionHandler: AuthorizationHandler<PermissionRequirement>
+    public partial class PermissionHandler : AuthorizationHandler<PermissionRequirement>
     {
         private readonly IUserService _userService;
+        private readonly IABACService _abacService;
 
-        public PermissionHandler(IUserService userService)
+        public PermissionHandler(IUserService userService, IABACService abacService)
         {
             _userService = userService;
+            _abacService = abacService;
         }
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
@@ -29,16 +26,17 @@ namespace WFT.Infra.Application.Permissions
 
             var userId = long.Parse(userIdClaim.Value);
 
+            // Check if permission requires ABAC evaluation
             var hasPermission = await _userService.HasPermissionAsync(userId, requirement.Permission);
-
-            if (hasPermission)
-            {
-                context.Succeed(requirement);
-            }
-            else
+            if (!hasPermission)
             {
                 context.Fail();
+                return;
             }
+
+            // For now, we'll use basic RBAC. ABAC evaluation can be added later
+            // when we have resource and context information available
+            context.Succeed(requirement);
         }
     }
 }

@@ -101,6 +101,291 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.AttributeDefinition", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("AttributeGroupId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("DataType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("DefaultValue")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttributeGroupId");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("Source");
+
+                    b.ToTable("AttributeDefinitions", (string)null);
+                });
+
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.AttributeGroup", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Color")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("SortOrder");
+
+                    b.ToTable("AttributeGroups", (string)null);
+                });
+
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.AttributeValue", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AttributeDefinitionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<long?>("ResourceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ResourceType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ValidFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ValidTo")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttributeDefinitionId");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ValidFrom");
+
+                    b.HasIndex("ValidTo");
+
+                    b.HasIndex("ResourceId", "ResourceType");
+
+                    b.ToTable("AttributeValues", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AttributeValue_UserId_Or_ResourceId", "(UserId IS NOT NULL AND ResourceId IS NULL) OR (UserId IS NULL AND ResourceId IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.ConditionOperator", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("DataTypes")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("ConditionOperators", (string)null);
+                });
+
             modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.Permission", b =>
                 {
                     b.Property<long>("Id")
@@ -141,6 +426,146 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Permissions");
+                });
+
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.PolicyCondition", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AttributeDefinitionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ConditionOperatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("LogicalOperator")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("AND");
+
+                    b.Property<int>("Order")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<long>("PolicyRuleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttributeDefinitionId");
+
+                    b.HasIndex("ConditionOperatorId");
+
+                    b.HasIndex("Order");
+
+                    b.HasIndex("PolicyRuleId");
+
+                    b.ToTable("PolicyConditions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_PolicyCondition_LogicalOperator", "LogicalOperator IN ('AND', 'OR')");
+                        });
+                });
+
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.PolicyRule", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Effect")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Priority")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Effect");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("Priority");
+
+                    b.ToTable("PolicyRules", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_PolicyRule_Effect", "Effect IN ('ALLOW', 'DENY')");
+                        });
                 });
 
             modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.Role", b =>
@@ -224,6 +649,67 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("RolePermission");
+                });
+
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.RolePolicyRule", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CreatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<long>("PolicyRuleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RoleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ValidFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ValidTo")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("PolicyRuleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("ValidFrom");
+
+                    b.HasIndex("ValidTo");
+
+                    b.HasIndex("RoleId", "PolicyRuleId")
+                        .IsUnique();
+
+                    b.ToTable("RolePolicyRules", (string)null);
                 });
 
             modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.User", b =>
@@ -365,6 +851,61 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.ToTable("UserRole");
                 });
 
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.AttributeDefinition", b =>
+                {
+                    b.HasOne("WFT.Infra.Core.Entities.UserManagment.AttributeGroup", "AttributeGroup")
+                        .WithMany("AttributeDefinitions")
+                        .HasForeignKey("AttributeGroupId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("AttributeGroup");
+                });
+
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.AttributeValue", b =>
+                {
+                    b.HasOne("WFT.Infra.Core.Entities.UserManagment.AttributeDefinition", "AttributeDefinition")
+                        .WithMany("AttributeValues")
+                        .HasForeignKey("AttributeDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WFT.Infra.Core.Entities.UserManagment.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("AttributeDefinition");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.PolicyCondition", b =>
+                {
+                    b.HasOne("WFT.Infra.Core.Entities.UserManagment.AttributeDefinition", "AttributeDefinition")
+                        .WithMany("PolicyConditions")
+                        .HasForeignKey("AttributeDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WFT.Infra.Core.Entities.UserManagment.ConditionOperator", "ConditionOperator")
+                        .WithMany("PolicyConditions")
+                        .HasForeignKey("ConditionOperatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WFT.Infra.Core.Entities.UserManagment.PolicyRule", "PolicyRule")
+                        .WithMany("PolicyConditions")
+                        .HasForeignKey("PolicyRuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AttributeDefinition");
+
+                    b.Navigation("ConditionOperator");
+
+                    b.Navigation("PolicyRule");
+                });
+
             modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.RolePermission", b =>
                 {
                     b.HasOne("WFT.Infra.Core.Entities.UserManagment.Permission", "Permission")
@@ -380,6 +921,25 @@ namespace WFT.Infra.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.RolePolicyRule", b =>
+                {
+                    b.HasOne("WFT.Infra.Core.Entities.UserManagment.PolicyRule", "PolicyRule")
+                        .WithMany("RolePolicyRules")
+                        .HasForeignKey("PolicyRuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WFT.Infra.Core.Entities.UserManagment.Role", "Role")
+                        .WithMany("RolePolicyRules")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PolicyRule");
 
                     b.Navigation("Role");
                 });
@@ -414,14 +974,40 @@ namespace WFT.Infra.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.AttributeDefinition", b =>
+                {
+                    b.Navigation("AttributeValues");
+
+                    b.Navigation("PolicyConditions");
+                });
+
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.AttributeGroup", b =>
+                {
+                    b.Navigation("AttributeDefinitions");
+                });
+
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.ConditionOperator", b =>
+                {
+                    b.Navigation("PolicyConditions");
+                });
+
             modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.Permission", b =>
                 {
                     b.Navigation("RolePermissions");
                 });
 
+            modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.PolicyRule", b =>
+                {
+                    b.Navigation("PolicyConditions");
+
+                    b.Navigation("RolePolicyRules");
+                });
+
             modelBuilder.Entity("WFT.Infra.Core.Entities.UserManagment.Role", b =>
                 {
                     b.Navigation("RolePermissions");
+
+                    b.Navigation("RolePolicyRules");
 
                     b.Navigation("UserRoles");
                 });
