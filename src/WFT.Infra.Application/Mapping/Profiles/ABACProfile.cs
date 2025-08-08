@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Core.Entities.UserManagment;
 
@@ -9,31 +9,22 @@ namespace WFT.Infra.Application.Mapping.Profiles
         public ABACProfile()
         {
             // AttributeGroup mappings
-            CreateMap<AttributeGroup, AttributeGroupDto>()
-                .ForMember(dest => dest.AttributeCount, opt => opt.Ignore())
-                .ForMember(dest => dest.AttributeDefinitions, opt => opt.MapFrom(src => src.AttributeDefinitions))
-                .ReverseMap();
+            CreateMap<AttributeGroup, AttributeGroupDto>().ReverseMap();
 
             // AttributeDefinition mappings
             CreateMap<AttributeDefinition, AttributeDefinitionDto>()
-                .ForMember(dest => dest.AttributeGroupName, opt => opt.MapFrom(src => src.AttributeGroup != null ? src.AttributeGroup.DisplayName : null))
-                .ReverseMap();
+     .ForMember(dest => dest.AttributeGroupName, opt => opt.MapFrom(src => src.AttributeGroup != null ? src.AttributeGroup.DisplayName : null))
+     .ReverseMap()
+     .ForMember(dest => dest.AttributeGroup, opt => opt.Ignore()); // مهم!
 
             // AttributeValue mappings
-            CreateMap<AttributeValue, AttributeValueDto>()
-                .ForMember(dest => dest.AttributeName, opt => opt.Ignore())
-                .ReverseMap();
+            CreateMap<AttributeValue, AttributeValueDto>().ReverseMap();
 
             // PolicyRule mappings
-            CreateMap<PolicyRule, PolicyRuleDto>()
-                .ForMember(dest => dest.PolicyConditions, opt => opt.MapFrom(src => src.PolicyConditions))
-                .ReverseMap();
+            CreateMap<PolicyRule, PolicyRuleDto>().ReverseMap();
 
             // PolicyCondition mappings
-            CreateMap<PolicyCondition, PolicyConditionDto>()
-                .ForMember(dest => dest.AttributeName, opt => opt.MapFrom(src => src.AttributeDefinition.Name))
-                .ForMember(dest => dest.OperatorName, opt => opt.MapFrom(src => src.ConditionOperator.Name))
-                .ReverseMap();
+            CreateMap<PolicyCondition, PolicyConditionDto>().ReverseMap();
 
             // ConditionOperator mappings
             CreateMap<ConditionOperator, ConditionOperatorDto>().ReverseMap();
@@ -42,4 +33,4 @@ namespace WFT.Infra.Application.Mapping.Profiles
             CreateMap<RolePolicyRule, object>().ReverseMap(); // No DTO needed for this junction table
         }
     }
-} 
+}

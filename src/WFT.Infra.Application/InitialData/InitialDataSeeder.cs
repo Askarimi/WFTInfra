@@ -166,7 +166,8 @@ namespace WFT.Infra.Application.InitialData
                         DataType = attr.DataType,
                         Source = attr.Source,
                         IsRequired = false,
-                        IsActive = true
+                        IsActive = true,
+                        AttributeGroupId = 1
                     };
                     await _attributeService.AddAsync(attributeDto);
                 }
