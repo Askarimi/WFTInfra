@@ -10,17 +10,16 @@ namespace WFT.Infra.WebApi.Controllers
     [AllowAnonymous]
     public class AuthController : BaseController
     {
-
         private readonly IUserService _userService;
         private readonly IAuthService _authService;
         private readonly ITokenService _tokenService;
         private readonly IWorkContext _workContext;
 
-        public AuthController(IUserService userService,
+        public AuthController(
+            IUserService userService,
             IAuthService authService,
             ITokenService tokenService,
-            IWorkContext workContext
-            )
+            IWorkContext workContext)
         {
             _userService = userService;
             _authService = authService;
@@ -29,17 +28,16 @@ namespace WFT.Infra.WebApi.Controllers
         }
 
         [HttpPost("register")]
-        public virtual async Task<IActionResult> Register([FromBody] UserRegisterDto dto)
+        public async Task<IActionResult> Register([FromBody] UserRegisterDto dto)
         {
             try
             {
                 var user = await _authService.RegisterAsync(dto);
-
-                return new OkObjectResult(new { success = true, message = "کاربر با موفقیت ثبت شد." });
+                return Ok(new { message = "کاربر با موفقیت ثبت شد." });
             }
             catch (Exception ex)
             {
-                return await ErrorResponse(ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
@@ -49,12 +47,10 @@ namespace WFT.Infra.WebApi.Controllers
             try
             {
                 var result = await _authService.LoginAsync(dto);
-
                 if (result == null)
-                    return await ErrorResponse("Invalid username or password", 401);
+                    return Unauthorized("نام کاربری یا رمز عبور معتبر نیست.");
 
-
-                // RefreshToken از result بگیریم و داخل Cookie بذاریم
+                // RefreshToken در Cookie
                 Response.Cookies.Append("refresh_token", result.RefreshToken, new CookieOptions
                 {
                     HttpOnly = true,
@@ -63,46 +59,43 @@ namespace WFT.Infra.WebApi.Controllers
                     Expires = DateTimeOffset.UtcNow.AddDays(7)
                 });
 
-                return await SuccessResponse(new
+                return Ok(new
                 {
-                    accesstoken = result.AccessToken,
+                    accessToken = result.AccessToken,
                     user = new
                     {
                         id = result.User.Id,
                         username = result.User.Username,
                         firstname = result.User.FirstName,
                         lastname = result.User.LastName,
-                        fullName = $"{result.User.FirstName} {result.User.LastName}",
+                        fullName = $"{result.User.FirstName} {result.User.LastName}"
                     }
-                }); // مثلاً توکن، اطلاعات کاربر و...
+                });
             }
             catch (Exception ex)
             {
-                return await ErrorResponse(ex.Message);
+                return BadRequest(ex.Message);
             }
         }
-
-
 
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-
             try
             {
-                var refreshToken = Request.Cookies["refresh_Token"];
+                var refreshToken = Request.Cookies["refresh_token"];
                 if (string.IsNullOrWhiteSpace(refreshToken))
-                    return await ErrorResponse("توکن یافت نشد", 400);
+                    return BadRequest("توکن یافت نشد");
 
-                await _authService.LogoutAsync(refreshToken); // این متد همونیه که Revoke میکنه
+                await _authService.LogoutAsync(refreshToken);
 
-                Response.Cookies.Delete("refreshToken");
+                Response.Cookies.Delete("refresh_token");
 
-                return await SuccessResponse("با موفقیت خارج شدید");
+                return Ok("با موفقیت خارج شدید");
             }
             catch (Exception ex)
             {
-                return await ErrorResponse("خطا در خروج: " + ex.Message);
+                return BadRequest("خطا در خروج: " + ex.Message);
             }
         }
 
@@ -111,14 +104,12 @@ namespace WFT.Infra.WebApi.Controllers
         {
             var refreshToken = Request.Cookies["refresh_token"];
             if (string.IsNullOrEmpty(refreshToken))
-                return Unauthorized();
+                return Unauthorized("توکن موجود نیست.");
 
             var newTokens = await _tokenService.RefreshTokenAsync(refreshToken);
-
             if (newTokens == null)
-                return Unauthorized();
+                return Unauthorized("توکن نامعتبر است.");
 
-            // RefreshToken جدید رو باز هم در Cookie بنویس
             Response.Cookies.Append("refresh_token", newTokens.RefreshToken, new CookieOptions
             {
                 HttpOnly = true,

@@ -9,7 +9,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Controllers\ABACController.cs" />
+	  <Compile Remove="Controllers\AttributeDefinitionsController.cs" />
+	  <Compile Remove="Controllers\AttributeGroupsController.cs" />
+	  <Compile Remove="Controllers\ConditionOperatorsController.cs" />
 	  <Compile Remove="Controllers\CountryController.cs" />
+	  <Compile Remove="Controllers\PermissionsController .cs" />
+	  <Compile Remove="Controllers\PolicyRulesController.cs" />
+	  <Compile Remove="Controllers\RolePolicyAssignmentController.cs" />
+	  <Compile Remove="Controllers\RolesController.cs" />
+	  <Compile Remove="Controllers\UserPasswordController.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WFT.Infra.Application.Contracts.DTOs.UserManagment;
+﻿using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 
 namespace WFT.Infra.Application.Contracts.Repositories
 {
-    public interface IUserRepository<TEntity> where TEntity : class
+    public interface IUserRepository
     {
-        Task<TEntity?> GetByIdWithRolesAndPermissionsAsync(long userId);
+        Task<UserDto?> GetByIdWithRolesAndPermissionsAsync(long userId);
+        Task<bool> HasPermissionAsync(long userId, string permissionName);
     }
 }

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Repositories;
-using WFT.Infra.Core.Entities.UserManagment;
 using WFT.Infra.Infrastructure.Data;
 using WFT.Infra.Infrastructure.Repositories;
 
@@ -16,7 +15,7 @@ namespace WFT.Infra.Infrastructure
 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
-            services.AddScoped<IUserRepository<User>, UserRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
             services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
 

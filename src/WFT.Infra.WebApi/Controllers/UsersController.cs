@@ -15,7 +15,7 @@ namespace WFT.Infra.WebApi.Controllers
         private readonly IAuthorizationService _authorizationService;
 
         public UsersController(
-            IUserService userService, 
+            IUserService userService,
             IWorkContext workContext,
             IAuthorizationService authorizationService)
         {
@@ -30,44 +30,50 @@ namespace WFT.Infra.WebApi.Controllers
         public async Task<IActionResult> Create([FromBody] UserDto request)
         {
             if (!ModelState.IsValid)
-                return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
+                return BadRequest("اطلاعات وارد شده معتبر نیست.");
 
             // Authorization Check: Can current user create users?
             var currentUserId = _workContext.UserId.Value;
-            var canCreate = await _authorizationService.CanCreateUserAsync(currentUserId);
-            if (!canCreate)
+
+
+            // 1️⃣ بررسی دسترسی RBAC
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "CreateUser");
+            if (!hasPermission)
             {
-                var authResult = await _authorizationService.ValidateUserAccessAsync(currentUserId, 0, "CreateUser");
-                return await ErrorResponse(authResult.Reason ?? "شما مجوز ایجاد کاربر را ندارید.", 403);
+                // اگر نیاز به جزئیات داشتیم، می‌توانیم از EvaluateAccessDetailedAsync استفاده کنیم
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "CreateUser");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز ایجاد کاربر را ندارید.");
             }
+
 
             request.CreatedUserId = currentUserId;
 
             var user = await _userService.AddAsync(request);
             var result = await _userService.GetByIdAsync(user.Id);
 
-            return await CreatedResponse(nameof(GetById), new { id = user.Id }, result);
+            return CreatedAtAction(nameof(GetById), new { id = user.Id }, result);
         }
 
         // READ BY ID
         [HttpGet()]
         [Route("init/{id:long}")]
-        public override async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            // Authorization Check: Can current user view this specific user?
-            var currentUserId = _workContext.UserId.Value;
-            var canView = await _authorizationService.CanViewUserAsync(currentUserId, id);
-            if (!canView)
+
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ViewUser");
+            if (!hasPermission)
             {
-                var authResult = await _authorizationService.ValidateUserAccessAsync(currentUserId, id, "ViewUser");
-                return await ErrorResponse(authResult.Reason ?? "شما مجوز مشاهده این کاربر را ندارید.", 403);
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewUser", id);
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز مشاهده این کاربر را ندارید.");
             }
 
             var user = await _userService.GetByIdAsync(id);
             if (user == null)
-                return await ErrorResponse("کاربر یافت نشد.", 404);
+                return NotFound("کاربر یافت نشد.");
 
-            return await SuccessResponse(user);
+            return Ok(user);
         }
 
         // READ ALL
@@ -75,40 +81,18 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("List")]
         public async Task<IActionResult> GetAll([FromQuery] PagedQueryRequest request)
         {
-            // Authorization Check: Can current user view user list?
-            var currentUserId = _workContext.UserId.Value;
-            var canViewList = await _authorizationService.CanViewUserListAsync(currentUserId);
-            if (!canViewList)
-            {
-                var authResult = await _authorizationService.ValidateUserAccessAsync(currentUserId, 0, "ViewUserList");
-                return await ErrorResponse(authResult.Reason ?? "شما مجوز مشاهده لیست کاربران را ندارید.", 403);
-            }
+            var currentUserId = _workContext.UserId!.Value;
 
-            // بررسی ورودی‌ها (اختیاری: می‌توانید اعتبارسنجی کنید که PageNumber و PageSize بزرگتر از صفر باشند)
-            if (request.PageNumber <= 0)
-            {
-                return BadRequest("PageNumber must be greater than 0");
-            }
+            var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewUserList");
+            if (!authResult.HasAccess)
+                return Forbid();
 
-            if (request.PageSize <= 0)
-            {
-                return BadRequest("PageSize must be greater than 0");
-            }
+            if (request.PageNumber <= 0) return BadRequest("PageNumber must be greater than 0");
+            if (request.PageSize <= 0) return BadRequest("PageSize must be greater than 0");
 
-            // Get accessible user IDs for filtering
-            var accessibleUserIds = await _authorizationService.GetAccessibleUserIdsAsync(currentUserId);
-            
-            // Add filter to only show accessible users
-            if (request.Filters == null)
-                request.Filters = new Dictionary<string, object>();
-            
-            request.Filters["AccessibleUserIds"] = accessibleUserIds;
-
-            // استفاده از سرویس برای دریافت داده‌ها
             var result = await _userService.GetPagedListAsync(request);
 
-            // بازگشت نتیجه صفحه‌بندی شده
-            return await SuccessResponse(result);
+            return PaginatedResponse<UserDto>(result.Items, request.PageNumber, request.PageSize, result.TotalCount);
         }
 
         // UPDATE
@@ -117,20 +101,17 @@ namespace WFT.Infra.WebApi.Controllers
         public async Task<IActionResult> Update([FromBody] UserDto request)
         {
             if (!ModelState.IsValid)
-                return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
+                return BadRequest("اطلاعات وارد شده معتبر نیست.");
 
-            // Authorization Check: Can current user edit this specific user?
-            var currentUserId = _workContext.UserId.Value;
-            var canEdit = await _authorizationService.CanEditUserAsync(currentUserId, request.Id);
-            if (!canEdit)
-            {
-                var authResult = await _authorizationService.ValidateUserAccessAsync(currentUserId, request.Id, "EditUser");
-                return await ErrorResponse(authResult.Reason ?? "شما مجوز ویرایش این کاربر را ندارید.", 403);
-            }
+            var currentUserId = _workContext.UserId!.Value;
+
+            var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "EditUser", request.Id);
+            if (!authResult.HasAccess)
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز ویرایش این کاربر را ندارید.");
 
             var result = await _userService.UpdateAsync(request);
 
-            return await SuccessResponse(result);
+            return Ok(result);
         }
 
         // DELETE
@@ -138,18 +119,18 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("delete/{id:long}")]
         public async Task<IActionResult> Delete(long id)
         {
-            // Authorization Check: Can current user delete this specific user?
-            var currentUserId = _workContext.UserId.Value;
-            var canDelete = await _authorizationService.CanDeleteUserAsync(currentUserId, id);
-            if (!canDelete)
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "DeleteUser");
+            if (!hasPermission)
             {
-                var authResult = await _authorizationService.ValidateUserAccessAsync(currentUserId, id, "DeleteUser");
-                return await ErrorResponse(authResult.Reason ?? "شما مجوز حذف این کاربر را ندارید.", 403);
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "DeleteUser", id);
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز حذف این کاربر را ندارید.");
             }
 
             await _userService.DeleteAsync(id);
 
-            return await NoContentResponse();
+            return NoContent();
         }
     }
 }

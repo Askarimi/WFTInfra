@@ -15,6 +15,7 @@ namespace WFT.Infra.Application.Services.UserManagment
         #region ctor
 
         private readonly IRepository<User> _userRepository;
+        private readonly IUserRepository _userPermissionRepositroy;
         private readonly IRepository<UserRole> _userRoleRepository;
         private readonly IRepository<Role> _roleRepository;
         private readonly IPasswordHasher _passwordHasher;
@@ -26,7 +27,8 @@ namespace WFT.Infra.Application.Services.UserManagment
             IRepository<UserRole> userRoleRepository,
             IRepository<Role> roleRepository,
             IPasswordHasher passwordHasher,
-            IUserPasswordService userPasswordService
+            IUserPasswordService userPasswordService,
+            IUserRepository userPermissionRepositroy
             )
         {
             _mapper = mapper;
@@ -35,6 +37,7 @@ namespace WFT.Infra.Application.Services.UserManagment
             _roleRepository = roleRepository;
             _passwordHasher = passwordHasher;
             _userPasswordService = userPasswordService;
+            _userPermissionRepositroy = userPermissionRepositroy;
         }
         #endregion
 
@@ -95,7 +98,7 @@ namespace WFT.Infra.Application.Services.UserManagment
                             .First(m => m.Name == "Contains" && m.GetParameters().Length == 2)
                             .MakeGenericMethod(typeof(long));
                         var containsCall = Expression.Call(containsMethod, Expression.Constant(accessibleUserIds), idProperty);
-                        
+
                         filter = Expression.Lambda<Func<User, bool>>(
                             Expression.AndAlso(filter.Body, containsCall), param);
                     }
@@ -176,20 +179,8 @@ namespace WFT.Infra.Application.Services.UserManagment
 
         public async Task<bool> HasPermissionAsync(long userId, string permissionName)
         {
-            var user = await _userRepository.GetWithIncludesAsync(
-                u => u.Id == userId,
-                u => u.UserRoles,
-                u => u.UserRoles.Select(ur => ur.Role),
-                u => u.UserRoles.Select(ur => ur.Role.RolePermissions),
-                u => u.UserRoles.Select(ur => ur.Role.RolePermissions.Select(rp => rp.Permission))
-            );
 
-            var matchedUser = user.FirstOrDefault();
-            if (matchedUser == null) return false;
-
-            return matchedUser.UserRoles
-                .SelectMany(ur => ur.Role.RolePermissions)
-                .Any(rp => rp.Permission.Name == permissionName);
+            return await _userPermissionRepositroy.HasPermissionAsync(userId, permissionName);
         }
 
         public async Task<long> RegisterByUserAsync(UserRegisterDto dto)

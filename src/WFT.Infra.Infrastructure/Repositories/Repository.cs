@@ -72,7 +72,43 @@ namespace WFT.Infra.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
+
         public virtual async Task<TEntity> UpdateAsync(TEntity entity)
+        {
+            var set = _context.Set<TEntity>();
+
+            // بررسی وضعیت tracked
+            var trackedEntity = _context.ChangeTracker.Entries<TEntity>()
+                                        .FirstOrDefault(e => e.Entity.Id == entity.Id)?.Entity;
+
+            if (trackedEntity != null)
+            {
+                _context.Entry(trackedEntity).CurrentValues.SetValues(entity);
+                entity = trackedEntity; // استفاده از همان tracked entity
+            }
+            else
+            {
+                var existingEntity = await set.FindAsync(entity.Id);
+                if (existingEntity == null)
+                    throw new Exception("Entity not found.");
+
+                _context.Entry(existingEntity).CurrentValues.SetValues(entity);
+                entity = existingEntity;
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return entity;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                throw new Exception("این رکورد توسط کاربر دیگری ویرایش یا حذف شده است.");
+            }
+        }
+
+
+        public virtual async Task<TEntity> UpdateAsynccccc(TEntity entity)
         {
 
             // ابتدا رکورد موجود را با شناسه آن پیدا می‌کنیم
@@ -90,7 +126,7 @@ namespace WFT.Infra.Infrastructure.Repositories
 
                 return existingEntity;
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
 
                 throw new Exception("این رکورد توسط کاربر دیگری ویرایش یا حذف شده است.");
@@ -143,28 +179,6 @@ namespace WFT.Infra.Infrastructure.Repositories
         {
             return await _dbSet.FirstOrDefaultAsync(predicate);
         }
-        // متد عمومی برای بارگذاری داده‌ها با Include های دینامیک
-        public async Task<IEnumerable<TEntity>> GetWithIncludesAsync(
-       Expression<Func<TEntity, bool>> predicate = null,
-       params Expression<Func<TEntity, object>>[] includes)
-        {
-            IQueryable<TEntity> query = _context.Set<TEntity>();
-
-            // اضافه کردن شرایط Filter (predicate) اگر نیاز بود
-            if (predicate != null)
-            {
-                query = query.Where(predicate);
-            }
-
-            // اضافه کردن Include ها به صورت دینامیک
-            foreach (var include in includes)
-            {
-                query = query.Include(include);
-            }
-
-            return await query.ToListAsync();
-        }
-
 
         // متد Table برای دسترسی به داده‌ها با استفاده از IQueryable
         public IQueryable<TEntity> Table => _dbSet.AsQueryable();

@@ -6,6 +6,7 @@ using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.InitialData;
 using WFT.Infra.Application.Settings;
 using WFT.Infra.Bootstrapper;
+using WFT.Infra.WebApi.CustomConfig;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,6 +82,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+
+app.UseMiddleware<WFTResponseMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
