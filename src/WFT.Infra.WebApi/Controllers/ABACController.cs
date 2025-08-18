@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
+using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Contracts.Interfaces;
 
@@ -10,12 +11,18 @@ namespace WFT.Infra.WebApi.Controllers
         private readonly IABACService _abacService;
         private readonly IAttributeService _attributeService;
         private readonly IWorkContext _workContext;
+        private readonly IAuthorizationService _authorizationService;
 
-        public ABACController(IABACService abacService, IAttributeService attributeService, IWorkContext workContext)
+        public ABACController(
+            IABACService abacService, 
+            IAttributeService attributeService, 
+            IWorkContext workContext,
+            IAuthorizationService authorizationService)
         {
             _abacService = abacService;
             _attributeService = attributeService;
             _workContext = workContext;
+            _authorizationService = authorizationService;
         }
 
         // Evaluate access (simple)
@@ -24,7 +31,16 @@ namespace WFT.Infra.WebApi.Controllers
         public async Task<IActionResult> EvaluateAccess([FromBody] ABACEvaluationRequestDto request)
         {
             if (!ModelState.IsValid)
-                return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
+                return BadRequest("اطلاعات وارد شده معتبر نیست.");
+
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "EvaluateAccess");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "EvaluateAccess");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز ارزیابی دسترسی را ندارید.");
+            }
 
             var hasAccess = await _abacService.EvaluateAccessAsync(
                 request.UserId, 
@@ -32,7 +48,7 @@ namespace WFT.Infra.WebApi.Controllers
                 request.Resource, 
                 request.Context);
 
-            return await SuccessResponse(new { HasAccess = hasAccess });
+            return Ok(new { HasAccess = hasAccess });
         }
 
         // Evaluate access (detailed for frontend evaluation panel)
@@ -41,7 +57,16 @@ namespace WFT.Infra.WebApi.Controllers
         public async Task<IActionResult> EvaluateAccessDetailed([FromBody] ABACEvaluationRequestDto request)
         {
             if (!ModelState.IsValid)
-                return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
+                return BadRequest("اطلاعات وارد شده معتبر نیست.");
+
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "EvaluateAccessDetailed");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "EvaluateAccessDetailed");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز ارزیابی تفصیلی دسترسی را ندارید.");
+            }
 
             var evaluationResult = await _abacService.EvaluateAccessDetailedAsync(
                 request.UserId, 
@@ -49,7 +74,7 @@ namespace WFT.Infra.WebApi.Controllers
                 request.Resource, 
                 request.Context);
 
-            return await SuccessResponse(evaluationResult);
+            return Ok(evaluationResult);
         }
 
         // Get applicable policies for user and permission
@@ -57,9 +82,18 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("policies/{userId:long}/{permission}")]
         public async Task<IActionResult> GetApplicablePolicies(long userId, string permission)
         {
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ViewPolicies");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewPolicies");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز مشاهده سیاست‌ها را ندارید.");
+            }
+
             var policies = await _abacService.GetApplicablePoliciesAsync(userId, permission);
 
-            return await SuccessResponse(policies);
+            return Ok(policies);
         }
 
         // Get user attributes
@@ -67,9 +101,18 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("userattributes/{userId:long}")]
         public async Task<IActionResult> GetUserAttributes(long userId)
         {
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ViewUserAttributes");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewUserAttributes");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز مشاهده ویژگی‌های کاربر را ندارید.");
+            }
+
             var attributes = await _abacService.GetUserAttributesAsync(userId);
 
-            return await SuccessResponse(attributes);
+            return Ok(attributes);
         }
 
         // Get specific attribute value for user
@@ -77,11 +120,20 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("userattribute/{userId:long}/{attributeName}")]
         public async Task<IActionResult> GetUserAttributeValue(long userId, string attributeName)
         {
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ViewUserAttribute");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewUserAttribute");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز مشاهده ویژگی کاربر را ندارید.");
+            }
+
             var attributeValue = await _abacService.GetAttributeValueAsync(userId, attributeName);
             if (attributeValue == null)
-                return await ErrorResponse("مقدار ویژگی یافت نشد.", 404);
+                return NotFound("مقدار ویژگی یافت نشد.");
 
-            return await SuccessResponse(attributeValue);
+            return Ok(attributeValue);
         }
 
         // Set attribute value for user
@@ -90,13 +142,22 @@ namespace WFT.Infra.WebApi.Controllers
         public async Task<IActionResult> SetAttributeValue([FromBody] AttributeValueDto request)
         {
             if (!ModelState.IsValid)
-                return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
+                return BadRequest("اطلاعات وارد شده معتبر نیست.");
+
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "SetAttributeValue");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "SetAttributeValue");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز تنظیم مقدار ویژگی را ندارید.");
+            }
 
             var success = await _attributeService.SetAttributeValueAsync(request);
             if (!success)
-                return await ErrorResponse("خطا در تنظیم مقدار ویژگی.");
+                return BadRequest("خطا در تنظیم مقدار ویژگی.");
 
-            return await SuccessResponse(new { Success = true });
+            return Ok(new { Success = true });
         }
 
         // Get resource attributes
@@ -104,9 +165,18 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("resourceattributes/{resourceId:long}/{resourceType}")]
         public async Task<IActionResult> GetResourceAttributes(long resourceId, string resourceType)
         {
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ViewResourceAttributes");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewResourceAttributes");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز مشاهده ویژگی‌های منبع را ندارید.");
+            }
+
             var attributes = await _attributeService.GetResourceAttributesAsync(resourceId, resourceType);
 
-            return await SuccessResponse(attributes);
+            return Ok(attributes);
         }
 
         // Validate policy rule
@@ -115,11 +185,20 @@ namespace WFT.Infra.WebApi.Controllers
         public async Task<IActionResult> ValidatePolicyRule([FromBody] PolicyRuleDto policyRule, [FromQuery] object? resource = null, [FromQuery] object? context = null)
         {
             if (!ModelState.IsValid)
-                return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
+                return BadRequest("اطلاعات وارد شده معتبر نیست.");
+
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ValidatePolicyRule");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ValidatePolicyRule");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز اعتبارسنجی قوانین سیاست را ندارید.");
+            }
 
             var isValid = await _abacService.ValidatePolicyRuleAsync(policyRule, resource, context);
 
-            return await SuccessResponse(new { IsValid = isValid });
+            return Ok(new { IsValid = isValid });
         }
 
         // Get evaluation statistics (for dashboard)
@@ -127,6 +206,15 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("stats")]
         public async Task<IActionResult> GetEvaluationStats()
         {
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ViewEvaluationStats");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewEvaluationStats");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز مشاهده آمار ارزیابی را ندارید.");
+            }
+
             // This would typically come from a service that tracks evaluation metrics
             var stats = new
             {
@@ -137,7 +225,7 @@ namespace WFT.Infra.WebApi.Controllers
                 LastEvaluatedAt = DateTime.UtcNow
             };
 
-            return await SuccessResponse(stats);
+            return Ok(stats);
         }
 
         // Bulk set user attributes
@@ -146,7 +234,16 @@ namespace WFT.Infra.WebApi.Controllers
         public async Task<IActionResult> SetUserAttributes(long userId, [FromBody] List<AttributeValueDto> attributes)
         {
             if (!ModelState.IsValid)
-                return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
+                return BadRequest("اطلاعات وارد شده معتبر نیست.");
+
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "SetUserAttributes");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "SetUserAttributes");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز تنظیم ویژگی‌های کاربر را ندارید.");
+            }
 
             var results = new List<object>();
             foreach (var attribute in attributes)
@@ -156,7 +253,7 @@ namespace WFT.Infra.WebApi.Controllers
                 results.Add(new { AttributeName = attribute.AttributeName, Success = success });
             }
 
-            return await SuccessResponse(results);
+            return Ok(results);
         }
     }
 } 

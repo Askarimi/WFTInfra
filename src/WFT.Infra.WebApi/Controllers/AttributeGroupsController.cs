@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
+using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Application.Contracts.Models;
 using WFT.Infra.Contracts.Interfaces;
@@ -10,11 +11,16 @@ namespace WFT.Infra.WebApi.Controllers
     {
         private readonly IAttributeGroupService _attributeGroupService;
         private readonly IWorkContext _workContext;
+        private readonly IAuthorizationService _authorizationService;
 
-        public AttributeGroupsController(IAttributeGroupService attributeGroupService, IWorkContext workContext)
+        public AttributeGroupsController(
+            IAttributeGroupService attributeGroupService, 
+            IWorkContext workContext,
+            IAuthorizationService authorizationService)
         {
             _attributeGroupService = attributeGroupService;
             _workContext = workContext;
+            _authorizationService = authorizationService;
         }
 
         // CREATE
@@ -23,26 +29,44 @@ namespace WFT.Infra.WebApi.Controllers
         public async Task<IActionResult> Create([FromBody] AttributeGroupDto request)
         {
             if (!ModelState.IsValid)
-                return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
+                return BadRequest("اطلاعات وارد شده معتبر نیست.");
 
-            request.CreatedUserId = _workContext.UserId.Value;
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "CreateAttributeGroup");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "CreateAttributeGroup");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز ایجاد گروه ویژگی را ندارید.");
+            }
+
+            request.CreatedUserId = currentUserId;
 
             var attributeGroup = await _attributeGroupService.AddAsync(request);
             var result = await _attributeGroupService.GetByIdAsync(attributeGroup.Id);
 
-            return await CreatedResponse(nameof(GetById), new { id = attributeGroup.Id }, result);
+            return CreatedAtAction(nameof(GetById), new { id = attributeGroup.Id }, result);
         }
 
         // READ BY ID
-        [HttpGet()]
+        [HttpGet]
         [Route("init/{id:long}")]
-        public override async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ViewAttributeGroup");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewAttributeGroup");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز مشاهده گروه ویژگی را ندارید.");
+            }
+
             var attributeGroup = await _attributeGroupService.GetByIdAsync(id);
             if (attributeGroup == null)
-                return await ErrorResponse("گروه ویژگی یافت نشد.", 404);
+                return NotFound("گروه ویژگی یافت نشد.");
 
-            return await SuccessResponse(attributeGroup);
+            return Ok(attributeGroup);
         }
 
         // READ ALL
@@ -50,42 +74,56 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("List")]
         public async Task<IActionResult> GetAll([FromQuery] PagedQueryRequest request)
         {
-            if (request.PageNumber <= 0)
-            {
-                return BadRequest("PageNumber must be greater than 0");
-            }
+            var currentUserId = _workContext.UserId!.Value;
 
-            if (request.PageSize <= 0)
-            {
-                return BadRequest("PageSize must be greater than 0");
-            }
+            var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewAttributeGroupList");
+            if (!authResult.HasAccess)
+                return Forbid();
+
+            if (request.PageNumber <= 0) return BadRequest("PageNumber must be greater than 0");
+            if (request.PageSize <= 0) return BadRequest("PageSize must be greater than 0");
 
             var result = await _attributeGroupService.GetPagedListAsync(request);
 
-            return await SuccessResponse(result);
+            return PaginatedResponse<AttributeGroupDto>(result.Items, request.PageNumber, request.PageSize, result.TotalCount);
         }
 
         // UPDATE
-        [HttpPut()]
+        [HttpPut]
         [Route("update")]
         public async Task<IActionResult> Update([FromBody] AttributeGroupDto request)
         {
             if (!ModelState.IsValid)
-                return await ErrorResponse("اطلاعات وارد شده معتبر نیست.");
+                return BadRequest("اطلاعات وارد شده معتبر نیست.");
+
+            var currentUserId = _workContext.UserId!.Value;
+
+            var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "EditAttributeGroup", request.Id);
+            if (!authResult.HasAccess)
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز ویرایش این گروه ویژگی را ندارید.");
 
             var result = await _attributeGroupService.UpdateAsync(request);
 
-            return await SuccessResponse(result);
+            return Ok(result);
         }
 
         // DELETE
-        [HttpDelete()]
+        [HttpDelete]
         [Route("delete/{id:long}")]
         public async Task<IActionResult> Delete(long id)
         {
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "DeleteAttributeGroup");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "DeleteAttributeGroup", id);
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز حذف این گروه ویژگی را ندارید.");
+            }
+
             await _attributeGroupService.DeleteAsync(id);
 
-            return await NoContentResponse();
+            return NoContent();
         }
 
         // Get by name
@@ -93,11 +131,20 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("byname/{name}")]
         public async Task<IActionResult> GetByName(string name)
         {
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ViewAttributeGroup");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewAttributeGroup");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز مشاهده گروه ویژگی را ندارید.");
+            }
+
             var attributeGroup = await _attributeGroupService.GetByNameAsync(name);
             if (attributeGroup == null)
-                return await ErrorResponse("گروه ویژگی یافت نشد.", 404);
+                return NotFound("گروه ویژگی یافت نشد.");
 
-            return await SuccessResponse(attributeGroup);
+            return Ok(attributeGroup);
         }
 
         // Get active groups
@@ -105,9 +152,18 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("active")]
         public async Task<IActionResult> GetActiveGroups()
         {
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ViewAttributeGroup");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewAttributeGroup");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز مشاهده گروه ویژگی را ندارید.");
+            }
+
             var groups = await _attributeGroupService.GetActiveGroupsAsync();
 
-            return await SuccessResponse(groups);
+            return Ok(groups);
         }
 
         // Get groups by sort order
@@ -115,9 +171,18 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("sorted")]
         public async Task<IActionResult> GetGroupsBySortOrder()
         {
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ViewAttributeGroup");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewAttributeGroup");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز مشاهده گروه ویژگی را ندارید.");
+            }
+
             var groups = await _attributeGroupService.GetGroupsBySortOrderAsync();
 
-            return await SuccessResponse(groups);
+            return Ok(groups);
         }
 
         // Assign attribute to group
@@ -125,11 +190,20 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("assignattribute/{groupId:long}/{attributeId:long}")]
         public async Task<IActionResult> AssignAttributeToGroup(long groupId, long attributeId)
         {
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "EditAttributeGroup");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "EditAttributeGroup");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز ویرایش گروه ویژگی را ندارید.");
+            }
+
             var success = await _attributeGroupService.AssignAttributeToGroupAsync(attributeId, groupId);
             if (!success)
-                return await ErrorResponse("خطا در تخصیص ویژگی به گروه.");
+                return BadRequest("خطا در تخصیص ویژگی به گروه.");
 
-            return await SuccessResponse(new { Success = true, Message = "ویژگی با موفقیت به گروه تخصیص داده شد." });
+            return Ok(new { Success = true, Message = "ویژگی با موفقیت به گروه تخصیص داده شد." });
         }
 
         // Remove attribute from group
@@ -137,11 +211,20 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("removeattribute/{attributeId:long}")]
         public async Task<IActionResult> RemoveAttributeFromGroup(long attributeId)
         {
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "EditAttributeGroup");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "EditAttributeGroup");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز ویرایش گروه ویژگی را ندارید.");
+            }
+
             var success = await _attributeGroupService.RemoveAttributeFromGroupAsync(attributeId);
             if (!success)
-                return await ErrorResponse("خطا در حذف ویژگی از گروه.");
+                return BadRequest("خطا در حذف ویژگی از گروه.");
 
-            return await NoContentResponse();
+            return NoContent();
         }
 
         // Update sort order
@@ -149,11 +232,20 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("sortorder/{groupId:long}")]
         public async Task<IActionResult> UpdateSortOrder(long groupId, [FromQuery] int sortOrder)
         {
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "EditAttributeGroup");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "EditAttributeGroup");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز ویرایش گروه ویژگی را ندارید.");
+            }
+
             var success = await _attributeGroupService.UpdateSortOrderAsync(groupId, sortOrder);
             if (!success)
-                return await ErrorResponse("خطا در بروزرسانی ترتیب گروه.");
+                return BadRequest("خطا در بروزرسانی ترتیب گروه.");
 
-            return await SuccessResponse(new { Success = true, Message = "ترتیب گروه با موفقیت بروزرسانی شد." });
+            return Ok(new { Success = true, Message = "ترتیب گروه با موفقیت بروزرسانی شد." });
         }
     }
 } 

@@ -1,16 +1,25 @@
 using Microsoft.AspNetCore.Mvc;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
+using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
+using WFT.Infra.Contracts.Interfaces;
 
 namespace WFT.Infra.WebApi.Controllers
 {
     public class UserPasswordController : BaseController
     {
         private readonly IUserPasswordService _userPasswordService;
+        private readonly IWorkContext _workContext;
+        private readonly IAuthorizationService _authorizationService;
 
-        public UserPasswordController(IUserPasswordService userPasswordService)
+        public UserPasswordController(
+            IUserPasswordService userPasswordService,
+            IWorkContext workContext,
+            IAuthorizationService authorizationService)
         {
             _userPasswordService = userPasswordService;
+            _workContext = workContext;
+            _authorizationService = authorizationService;
         }
 
         // POST /api/userpassword/set
@@ -18,27 +27,36 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("set")]
         public async Task<IActionResult> SetPassword([FromBody] UserPasswordDto request)
         {
+            if (!ModelState.IsValid)
+                return BadRequest("اطلاعات وارد شده معتبر نیست.");
+
             // Validation
             if (string.IsNullOrEmpty(request.Password))
-                return await ErrorResponse("Password is required.", 400);
+                return BadRequest("رمز عبور الزامی است.");
 
             if (string.IsNullOrEmpty(request.ConfirmPassword))
-                return await ErrorResponse("Confirm password is required.", 400);
+                return BadRequest("تأیید رمز عبور الزامی است.");
 
             if (request.Password != request.ConfirmPassword)
-                return await ErrorResponse("Password and confirm password must match.", 400);
+                return BadRequest("رمز عبور و تأیید آن باید یکسان باشند.");
 
-            if (!ModelState.IsValid)
-                return await ErrorResponse("Invalid data provided.", 400);
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "SetUserPassword");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "SetUserPassword");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز تنظیم رمز عبور کاربر را ندارید.");
+            }
 
             try
             {
                 var result = await _userPasswordService.SetPasswordAsync(request);
-                return StatusCode(201, new { Success = true, Data = new { Message = "Password set successfully." } });
+                return StatusCode(201, new { Success = true, Data = new { Message = "رمز عبور با موفقیت تنظیم شد." } });
             }
             catch (Exception ex)
             {
-                return await ErrorResponse($"Failed to set password: {ex.Message}", 500);
+                return BadRequest($"خطا در تنظیم رمز عبور: {ex.Message}");
             }
         }
 
@@ -47,31 +65,40 @@ namespace WFT.Infra.WebApi.Controllers
         [Route("update")]
         public async Task<IActionResult> ChangePassword([FromBody] UserPasswordDto request)
         {
+            if (!ModelState.IsValid)
+                return BadRequest("اطلاعات وارد شده معتبر نیست.");
+
             // Validation
             if (string.IsNullOrEmpty(request.Password))
-                return await ErrorResponse("Password is required.", 400);
+                return BadRequest("رمز عبور الزامی است.");
 
             if (string.IsNullOrEmpty(request.ConfirmPassword))
-                return await ErrorResponse("Confirm password is required.", 400);
+                return BadRequest("تأیید رمز عبور الزامی است.");
 
             if (request.Password != request.ConfirmPassword)
-                return await ErrorResponse("Password and confirm password must match.", 400);
+                return BadRequest("رمز عبور و تأیید آن باید یکسان باشند.");
 
-            if (!ModelState.IsValid)
-                return await ErrorResponse("Invalid data provided.", 400);
+            var currentUserId = _workContext.UserId!.Value;
+
+            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ChangeUserPassword");
+            if (!hasPermission)
+            {
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ChangeUserPassword");
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز تغییر رمز عبور کاربر را ندارید.");
+            }
 
             try
             {
                 var result = await _userPasswordService.ChangePasswordAsync(request);
-                return await SuccessResponse(new { Message = "Password changed successfully." });
+                return Ok(new { Message = "رمز عبور با موفقیت تغییر یافت." });
             }
             catch (InvalidOperationException ex)
             {
-                return await ErrorResponse(ex.Message, 400);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                return await ErrorResponse($"Failed to change password: {ex.Message}", 500);
+                return BadRequest($"خطا در تغییر رمز عبور: {ex.Message}");
             }
         }
     }
