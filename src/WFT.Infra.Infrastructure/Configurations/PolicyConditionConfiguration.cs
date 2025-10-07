@@ -60,7 +60,7 @@ namespace WFT.Infra.Infrastructure.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Check constraint: LogicalOperator must be either "AND" or "OR"
-            builder.HasCheckConstraint("CK_PolicyCondition_LogicalOperator", "LogicalOperator IN ('AND', 'OR')");
+            builder.ToTable(t => t.HasCheckConstraint("CK_PolicyCondition_LogicalOperator", "LogicalOperator IN ('AND', 'OR')"));
         }
     }
 } 

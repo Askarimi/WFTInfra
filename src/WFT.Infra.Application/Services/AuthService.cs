@@ -6,15 +6,16 @@ using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Application.Contracts.Repositories;
+using WFT.Infra.Application.Contracts.Models;
 using WFT.Infra.Core.Entities.UserManagment;
 
-namespace WFT.Infra.Infrastructure.Services
+namespace WFT.Infra.Application.Services
 {
     public class AuthService : IAuthService
     {
         private readonly IRepository<User> _userRepository;
         private readonly IPasswordHasher _passwordHasher;
-        private readonly IJwtTokenGenerator _jwtTokenGenerator;
+        
         private readonly IMapper _mapper;
         private readonly IRepository<Role> _roleRepository;
         private readonly IUserService _userService;
@@ -23,7 +24,6 @@ namespace WFT.Infra.Infrastructure.Services
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IUserPasswordService _userPasswordService;
         public AuthService(IRepository<User> userRepository, IPasswordHasher passwordHasher,
-                          IJwtTokenGenerator jwtTokenGenerator,
                           IMapper mapper,
                           IRepository<Role> roleRepository,
                           IUserService userService,
@@ -35,7 +35,6 @@ namespace WFT.Infra.Infrastructure.Services
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
-            _jwtTokenGenerator = jwtTokenGenerator;
             _mapper = mapper;
             _roleRepository = roleRepository;
             _userService = userService;
@@ -67,12 +66,12 @@ namespace WFT.Infra.Infrastructure.Services
 
             var permissions = await _roleService.GetPermissionsForRoleAsync(roleIds: roles.Select(x => x.Id).ToList()); // فرض بر اینکه این متد وجود داره
 
-            var accessToken = _jwtTokenGenerator.GenerateToken(
-                userId: user.Id.ToString(),
-                username: user.Username,
-                roles: roles.Select(r => r.Name),
-                permissions: permissions.Select(p => p.Name)
+            var tokenRequest = new TokenRequest(
+                user.Id.ToString(),
+                user.Username,
+                roles.Select(r => r.Name)
             );
+            var accessToken = _tokenService.GenerateToken(tokenRequest);
 
             // 2. ساخت Refresh Token
             var refreshToken = GenerateSecureToken();
@@ -114,12 +113,12 @@ namespace WFT.Infra.Infrastructure.Services
 
             var permissions = await _roleService.GetPermissionsForRoleAsync(roleIds: roles.Select(x => x.Id).ToList()); // فرض بر اینکه این متد وجود داره
 
-            var accessToken = _jwtTokenGenerator.GenerateToken(
-                userId: user.Id.ToString(),
-                username: user.Username,
-                roles: roles.Select(r => r.Name),
-                permissions: permissions.Select(p => p.Name)
+            var tokenRequest = new TokenRequest(
+                user.Id.ToString(),
+                user.Username,
+                roles.Select(r => r.Name)
             );
+            var accessToken = _tokenService.GenerateToken(tokenRequest);
 
 
             return accessToken;

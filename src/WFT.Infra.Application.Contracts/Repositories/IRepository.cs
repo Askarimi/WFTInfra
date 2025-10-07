@@ -6,7 +6,7 @@ namespace WFT.Infra.Application.Contracts.Repositories
     public interface IRepository<TEntity> where TEntity : class
     {
         // دریافت موجودیت بر اساس شناسه
-        Task<TEntity> GetByIdAsync(long id);
+        Task<TEntity?> GetByIdAsync(long id);
         // دریافت تمام موجودیت‌ها
         Task<IEnumerable<TEntity>> GetAllAsync();
 
@@ -34,7 +34,7 @@ namespace WFT.Infra.Application.Contracts.Repositories
         Task<long> CountAsync(Expression<Func<TEntity, bool>> predicate = null);
         // متد کمکی جدید که Expression را دریافت می‌کند و لیست را برمی‌گرداند
         Task<IEnumerable<TEntity>> GetListByExpressionAsync(Expression<Func<TEntity, bool>> predicate);
-        Task<TEntity> GetByExpressionAsync(Expression<Func<TEntity, bool>> predicate);
+        Task<TEntity?> GetByExpressionAsync(Expression<Func<TEntity, bool>> predicate);
         // دسترسی به تمام داده‌ها به صورت IQueryable
         IQueryable<TEntity> Table { get; }
         // دسترسی به داده‌ها بدون Tracking (بدون ذخیره‌سازی وضعیت داده‌ها)

@@ -5,24 +5,22 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using WFT.Infra.Application.Contracts.DTOs;
-using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
-using WFT.Infra.Application.Helper;
-using WFT.Infra.Application.Settings;
-using WFT.Infra.Core.Entities.UserManagment;
+using WFT.Infra.Application.Contracts.Models;
+using WFT.Infra.Application.Contracts.Settings;
 
 namespace WFT.Infra.Application.Services
 {
     public partial class TokenService : ITokenService
     {
-        private readonly JwtTokenGenerator _jwtTokenGenerator;
+        private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly JwtSettings _jwtSettings;
         private readonly IMapper _mapper;
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IUserService _userService;
         private readonly IRoleService _roleService;
-        public TokenService(JwtTokenGenerator jwtTokenGenerator,
+        public TokenService(IJwtTokenGenerator jwtTokenGenerator,
             IOptions<JwtSettings> jwtOptions,
             IMapper mapper,
             IRefreshTokenService refreshTokenService,
@@ -38,45 +36,32 @@ namespace WFT.Infra.Application.Services
             _roleService = roleService;
         }
 
-        public string GenerateToken(string userId, string username, IEnumerable<string> roles, IEnumerable<string> permissions)
+        // New: GenerateToken via TokenRequest (contracts DTO)
+        public string GenerateToken(TokenRequest request)
         {
-            return _jwtTokenGenerator.GenerateToken(userId, username, roles, permissions);
+            // If permissions not supplied explicitly via request.Claims, derive from roles if needed
+            var roles = request.Roles ?? Enumerable.Empty<string>();
+            var permissions = Enumerable.Empty<string>();
+            return _jwtTokenGenerator.GenerateToken(request.UserId, request.UserName ?? string.Empty, roles, permissions);
         }
 
-        public string GenerateTokenForUser(UserDto userDto)
+        public ClaimsPrincipal? ValidateToken(string token)
         {
-            var user = _mapper.Map<User>(userDto);
-            var roles = user.UserRoles.Select(ur => ur.Role.Name);
-            var permissions = user.UserRoles
-                .SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission.Name));
-
-            return _jwtTokenGenerator.GenerateToken(user.Id.ToString(), user.Username, roles, permissions);
+            return GetPrincipalFromToken(token);
         }
-        public string RefreshToken(string expiredToken)
+
+        public IDictionary<string, string> ExtractClaims(string token)
         {
-            var principal = GetPrincipalFromToken(expiredToken);
+            var principal = GetPrincipalFromToken(token);
+            if (principal == null) return new Dictionary<string, string>();
 
-            if (principal == null)
-                throw new SecurityTokenException("Invalid token");
-
-            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                         ?? principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-
-            var username = principal.Identity?.Name
-                           ?? principal.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value;
-
-            var roles = principal.Claims
-                                 .Where(c => c.Type == ClaimTypes.Role)
-                                 .Select(c => c.Value);
-
-            var permissions = principal.Claims
-                                       .Where(c => c.Type == "permission")
-                                       .Select(c => c.Value);
-
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(username))
-                throw new SecurityTokenException("Token is missing required claims");
-
-            return _jwtTokenGenerator.GenerateToken(userId, username, roles, permissions);
+            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var claim in principal.Claims)
+            {
+                if (!dict.ContainsKey(claim.Type))
+                    dict[claim.Type] = claim.Value;
+            }
+            return dict;
         }
 
         public async Task<JwtResultDto?> RefreshTokenAsync(string refreshToken)
@@ -120,38 +105,11 @@ namespace WFT.Infra.Application.Services
         }
 
 
-        public bool ValidateToken(string token)
-        {
-            var principal = GetPrincipalFromToken(token);
-            return principal != null;
-        }
+        // Single ValidateToken retained in interface returns ClaimsPrincipal?
 
-        public (string UserId, string Username, List<string> Roles, List<string> Permissions)? ExtractClaims(string token)
-        {
-            var principal = GetPrincipalFromToken(token);
-            if (principal == null)
-                return null;
+        // Removed tuple-based ExtractClaims; single IDictionary<string,string> version retained
 
-            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                         ?? principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-
-            var username = principal.Identity?.Name
-                           ?? principal.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value;
-
-            var roles = principal.Claims
-                                 .Where(c => c.Type == ClaimTypes.Role)
-                                 .Select(c => c.Value)
-                                 .ToList();
-
-            var permissions = principal.Claims
-                                       .Where(c => c.Type == "permission")
-                                       .Select(c => c.Value)
-                                       .ToList();
-
-            return (userId ?? "", username ?? "", roles, permissions);
-        }
-
-        public ClaimsPrincipal? GetPrincipalFromToken(string token)
+        private ClaimsPrincipal? GetPrincipalFromToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 

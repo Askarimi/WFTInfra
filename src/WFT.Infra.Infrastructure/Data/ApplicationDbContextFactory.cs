@@ -8,18 +8,24 @@ namespace WFT.Infra.Infrastructure.Data
     {
         public ApplicationDbContext CreateDbContext(string[] args)
         {
+            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+            
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .AddJsonFile("appsettings.Development.json", optional: true)
+                .AddJsonFile("appsettings.json", optional: false)
+                .AddJsonFile($"appsettings.{envName}.json", optional: true)
+                .AddEnvironmentVariables() // Optional override for production deployments
                 .Build();
 
-            var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-            builder.UseSqlServer(connectionString);
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new InvalidOperationException("ConnectionStrings:DefaultConnection is not configured.");
 
-            return new ApplicationDbContext(builder.Options);
+            optionsBuilder.UseSqlServer(connectionString);
+
+            return new ApplicationDbContext(optionsBuilder.Options);
         }
     }
 } 

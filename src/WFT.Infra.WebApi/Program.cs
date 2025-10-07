@@ -4,11 +4,18 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.InitialData;
-using WFT.Infra.Application.Settings;
+using WFT.Infra.Application.Contracts.Settings;
 using WFT.Infra.Bootstrapper;
 using WFT.Infra.WebApi.CustomConfig;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configuration providers order: JSON files first (primary source), then optional environment variables
+var env = builder.Environment;
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables(); // Optional override for production deployments
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

@@ -14,7 +14,7 @@ namespace WFT.Infra.WebApi.Controllers
         private readonly IAuthorizationService _authorizationService;
 
         public PermissionsController(
-            IPermissionService permissionService, 
+            IPermissionService permissionService,
             IWorkContext workContext,
             IAuthorizationService authorizationService)
         {
@@ -26,7 +26,7 @@ namespace WFT.Infra.WebApi.Controllers
         // CREATE
         [HttpPost]
         [Route("Add")]
-        public async Task<IActionResult> Create([FromBody] PermissionDto request)
+        public async Task<IActionResult> Add([FromBody] PermissionDto request)
         {
             if (!ModelState.IsValid)
                 return BadRequest("اطلاعات وارد شده معتبر نیست.");
@@ -58,21 +58,20 @@ namespace WFT.Infra.WebApi.Controllers
             var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ViewPermission");
             if (!hasPermission)
             {
-                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewPermission");
-                return Forbid(authResult.EvaluationReason ?? "شما مجوز مشاهده دسترسی را ندارید.");
+                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewPermission", id);
+                return Forbid(authResult.EvaluationReason ?? "شما مجوز مشاهده این دسترسی را ندارید.");
             }
 
             var permission = await _permissionService.GetByIdAsync(id);
             if (permission == null)
                 return NotFound("دسترسی یافت نشد.");
-
             return Ok(permission);
         }
 
         // READ ALL
         [HttpGet]
         [Route("List")]
-        public async Task<IActionResult> GetAll([FromQuery] PagedQueryRequest request)
+        public async Task<IActionResult> List([FromQuery] PagedQueryRequest request)
         {
             var currentUserId = _workContext.UserId!.Value;
 
@@ -80,9 +79,18 @@ namespace WFT.Infra.WebApi.Controllers
             if (!authResult.HasAccess)
                 return Forbid();
 
-            if (request.PageNumber <= 0) return BadRequest("PageNumber must be greater than 0");
-            if (request.PageSize <= 0) return BadRequest("PageSize must be greater than 0");
+            // بررسی ورودی‌ها (اختیاری: می‌توانید اعتبارسنجی کنید که PageNumber و PageSize بزرگتر از صفر باشند)
+            if (request.PageNumber <= 0)
+            {
+                return BadRequest("PageNumber must be greater than 0");
+            }
 
+            if (request.PageSize <= 0)
+            {
+                return BadRequest("PageSize must be greater than 0");
+            }
+
+            // استفاده از سرویس برای دریافت داده‌ها
             var result = await _permissionService.GetPagedListAsync(request);
 
             return PaginatedResponse<PermissionDto>(result.Items, request.PageNumber, request.PageSize, result.TotalCount);
@@ -103,7 +111,6 @@ namespace WFT.Infra.WebApi.Controllers
                 return Forbid(authResult.EvaluationReason ?? "شما مجوز ویرایش این دسترسی را ندارید.");
 
             var result = await _permissionService.UpdateAsync(request);
-
             return Ok(result);
         }
 

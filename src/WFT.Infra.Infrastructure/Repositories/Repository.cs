@@ -19,7 +19,7 @@ namespace WFT.Infra.Infrastructure.Repositories
             _dbSet = context.Set<TEntity>();
         }
 
-        public virtual async Task<TEntity> GetByIdAsync(long id)
+        public virtual async Task<TEntity?> GetByIdAsync(long id)
         {
             return await _dbSet.FindAsync(id);
         }
@@ -101,7 +101,7 @@ namespace WFT.Infra.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
                 return entity;
             }
-            catch (DbUpdateConcurrencyException ex)
+            catch (DbUpdateConcurrencyException)
             {
                 throw new Exception("این رکورد توسط کاربر دیگری ویرایش یا حذف شده است.");
             }
@@ -126,7 +126,7 @@ namespace WFT.Infra.Infrastructure.Repositories
 
                 return existingEntity;
             }
-            catch (DbUpdateConcurrencyException ex)
+            catch (DbUpdateConcurrencyException)
             {
 
                 throw new Exception("این رکورد توسط کاربر دیگری ویرایش یا حذف شده است.");
@@ -162,7 +162,7 @@ namespace WFT.Infra.Infrastructure.Repositories
             return await _dbSet.AnyAsync(e => e.Id.Equals(id));
         }
 
-        public virtual async Task<long> CountAsync(Expression<Func<TEntity, bool>> predicate = null)
+        public virtual async Task<long> CountAsync(Expression<Func<TEntity, bool>>? predicate = null)
         {
             if (predicate == null)
                 return await _dbSet.CountAsync();
@@ -175,7 +175,7 @@ namespace WFT.Infra.Infrastructure.Repositories
         {
             return await _dbSet.Where(predicate).ToListAsync();
         }
-        public virtual async Task<TEntity> GetByExpressionAsync(Expression<Func<TEntity, bool>> predicate)
+        public virtual async Task<TEntity?> GetByExpressionAsync(Expression<Func<TEntity, bool>> predicate)
         {
             return await _dbSet.FirstOrDefaultAsync(predicate);
         }

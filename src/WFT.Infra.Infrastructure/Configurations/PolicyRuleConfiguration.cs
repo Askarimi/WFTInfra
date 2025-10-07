@@ -56,7 +56,7 @@ namespace WFT.Infra.Infrastructure.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Check constraint: Effect must be either "Allow" or "Deny"
-            builder.HasCheckConstraint("CK_PolicyRule_Effect", "Effect IN ('ALLOW', 'DENY')");
+            builder.ToTable(t => t.HasCheckConstraint("CK_PolicyRule_Effect", "Effect IN ('ALLOW', 'DENY')"));
         }
     }
 } 

@@ -7,7 +7,6 @@ using WFT.Infra.Application.InitialData;
 using WFT.Infra.Application.Services;
 using WFT.Infra.Application.Services.UserManagment;
 using WFT.Infra.Contracts.Interfaces;
-using WFT.Infra.Infrastructure.Services;
 
 namespace WFT.Infra.Application
 {
@@ -22,8 +21,7 @@ namespace WFT.Infra.Application
 
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
-            // تنظیمات JwtTokenGenerator
-            services.AddSingleton<JwtTokenGenerator>();
+            // تنظیمات و وابستگی‌های لایه Application (بدون ارجاع به زیرساخت)
 
 
 
@@ -49,7 +47,7 @@ namespace WFT.Infra.Application
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IPermissionService, PermissionService>();
             services.AddScoped<ITokenService, TokenService>();
-            services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+            // ثبت IJwtTokenGenerator باید در لایه زیرساخت/Bootstrapper انجام شود
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IWorkContext, WorkContext>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();

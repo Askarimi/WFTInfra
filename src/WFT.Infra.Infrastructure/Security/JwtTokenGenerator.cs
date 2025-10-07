@@ -1,20 +1,14 @@
-﻿using System;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
-using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Application.Contracts.Interfaces;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
-using Microsoft.Extensions.Options;
 using WFT.Infra.Application.Contracts.Settings;
-using WFT.Infra.Core.Entities.UserManagment;
 
-namespace WFT.Infra.Application.Helper
+namespace WFT.Infra.Infrastructure.Security
 {
-    // این کلاس به زیرساخت منتقل شده است؛ فایل Application قابل حذف است در صورت عدم نیاز.
-    public partial class JwtTokenGenerator:IJwtTokenGenerator
+    public class JwtTokenGenerator : IJwtTokenGenerator
     {
         private readonly JwtSettings _jwtSettings;
 
@@ -22,8 +16,6 @@ namespace WFT.Infra.Application.Helper
         {
             _jwtSettings = jwtOptions.Value;
         }
-
-        public JwtSettings JwtSettings { set { value = _jwtSettings; } }
 
         public string GenerateToken(string userId, string username, IEnumerable<string> roles, IEnumerable<string> permissions)
         {
@@ -36,10 +28,7 @@ namespace WFT.Infra.Application.Helper
                 new Claim(JwtRegisteredClaimNames.UniqueName, username)
             };
 
-            // اضافه کردن Roleها
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
-
-            // اضافه کردن Permissionها
             claims.AddRange(permissions.Select(permission => new Claim("permission", permission)));
 
             var token = new JwtSecurityToken(
@@ -54,3 +43,5 @@ namespace WFT.Infra.Application.Helper
         }
     }
 }
+
+

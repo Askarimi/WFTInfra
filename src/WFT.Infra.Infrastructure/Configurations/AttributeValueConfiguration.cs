@@ -54,8 +54,8 @@ namespace WFT.Infra.Infrastructure.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Check constraint: Either UserId or ResourceId must be set
-            builder.HasCheckConstraint("CK_AttributeValue_UserId_Or_ResourceId", 
-                "(UserId IS NOT NULL AND ResourceId IS NULL) OR (UserId IS NULL AND ResourceId IS NOT NULL)");
+            builder.ToTable(t => t.HasCheckConstraint("CK_AttributeValue_UserId_Or_ResourceId", 
+                "(UserId IS NOT NULL AND ResourceId IS NULL) OR (UserId IS NULL AND ResourceId IS NOT NULL)"));
         }
     }
 } 
