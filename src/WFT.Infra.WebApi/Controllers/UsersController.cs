@@ -4,6 +4,7 @@ using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Application.Contracts.Models;
 using WFT.Infra.Contracts.Interfaces;
+using WFT.Infra.WebApi.CustomConfig;
 
 namespace WFT.Infra.WebApi.Controllers
 {
@@ -92,7 +93,16 @@ namespace WFT.Infra.WebApi.Controllers
 
             var result = await _userService.GetPagedListAsync(request);
 
-            return PaginatedResponse<UserDto>(result.Items, request.PageNumber, request.PageSize, result.TotalCount);
+            var resultOK = WFTJsonResult.Ok(result.Items, meta: new MetaData
+            {
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize,
+                TotalCount = result.TotalCount,
+                TotalPages = result.TotalPages
+            });
+
+
+            return Ok(resultOK);
         }
 
         // UPDATE
@@ -132,5 +142,20 @@ namespace WFT.Infra.WebApi.Controllers
 
             return NoContent();
         }
+
+        /* 
+         * DIAGNOSTIC ENDPOINTS REMOVED - Moved to Unit Tests
+         * 
+         * The following diagnostic endpoints have been moved to proper unit tests:
+         * - test-rbac/{userId} → RbacVerificationTests.cs
+         * - verify-permission/{userId}/{permissionName} → RbacVerificationTests.cs
+         * - verify-rbac-fix/{userId} → RbacVerificationTests.cs
+         * 
+         * These endpoints were used for manual testing during development.
+         * All RBAC verification logic now exists as automated tests in:
+         * src/WFT.Infra.Test/Authorization/RbacVerificationTests.cs
+         * 
+         * To run tests: dotnet test src/WFT.Infra.Test
+         */
     }
 }

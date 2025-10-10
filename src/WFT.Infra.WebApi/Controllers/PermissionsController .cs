@@ -77,7 +77,7 @@ namespace WFT.Infra.WebApi.Controllers
 
             var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewPermissionList");
             if (!authResult.HasAccess)
-                return Forbid();
+                return StatusCode(StatusCodes.Status403Forbidden, authResult.EvaluationReason);
 
             // بررسی ورودی‌ها (اختیاری: می‌توانید اعتبارسنجی کنید که PageNumber و PageSize بزرگتر از صفر باشند)
             if (request.PageNumber <= 0)

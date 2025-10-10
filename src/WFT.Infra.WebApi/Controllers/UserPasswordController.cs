@@ -42,11 +42,11 @@ namespace WFT.Infra.WebApi.Controllers
 
             var currentUserId = _workContext.UserId!.Value;
 
-            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "SetUserPassword");
-            if (!hasPermission)
+            //var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "SetUserPassword");
+            var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "SetUserPassword");
+            if (!authResult.HasAccess)
             {
-                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "SetUserPassword");
-                return Forbid(authResult.EvaluationReason ?? "شما مجوز تنظیم رمز عبور کاربر را ندارید.");
+                return StatusCode(StatusCodes.Status403Forbidden, authResult.EvaluationReason);
             }
 
             try
@@ -80,11 +80,13 @@ namespace WFT.Infra.WebApi.Controllers
 
             var currentUserId = _workContext.UserId!.Value;
 
-            var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ChangeUserPassword");
-            if (!hasPermission)
+            // var hasPermission = await _authorizationService.HasPermissionAsync(currentUserId, "ChangeUserPassword");
+
+            var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ChangeUserPassword");
+
+            if (!authResult.HasAccess)
             {
-                var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ChangeUserPassword");
-                return Forbid(authResult.EvaluationReason ?? "شما مجوز تغییر رمز عبور کاربر را ندارید.");
+                return StatusCode(StatusCodes.Status403Forbidden, authResult.EvaluationReason);
             }
 
             try
@@ -102,4 +104,4 @@ namespace WFT.Infra.WebApi.Controllers
             }
         }
     }
-} 
+}

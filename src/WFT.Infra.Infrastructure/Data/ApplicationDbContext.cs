@@ -13,6 +13,10 @@ namespace WFT.Infra.Infrastructure.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<UserPassword> UserPasswords { get; set; }
         
+        // RBAC Junction Tables
+        public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
+        
         // ABAC Tables
         public DbSet<AttributeGroup> AttributeGroups { get; set; }
         public DbSet<AttributeDefinition> AttributeDefinitions { get; set; }

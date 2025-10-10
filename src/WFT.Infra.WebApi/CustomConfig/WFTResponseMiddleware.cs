@@ -51,6 +51,31 @@ public class WFTResponseMiddleware
                 data = null;
             }
 
+            // Check if data is already an ApiEnvelope or PagedResponse (has Success, Data, Meta properties)
+            // If so, return it directly without double-wrapping in WFTJsonResult
+            if (data != null && data.GetType().IsGenericType)
+            {
+                var typeName = data.GetType().GetGenericTypeDefinition().Name;
+                if (typeName.Contains("ApiEnvelope") || typeName.Contains("PagedResponse"))
+                {
+                    // ApiEnvelope/PagedResponse already has Success, Data, Meta, Message, Error
+                    // Return it directly without wrapping in WFTJsonResult
+                    context.Response.ContentType = "application/json";
+                    memStream.SetLength(0);
+                    await JsonSerializer.SerializeAsync(context.Response.Body, data, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                        WriteIndented = true,
+                        ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+                    });
+
+                    memStream.Seek(0, SeekOrigin.Begin);
+                    await memStream.CopyToAsync(originalBodyStream);
+                    context.Response.Body = originalBodyStream;
+                    return;
+                }
+            }
+
             string? errorMessage = null;
             string? userMessage = null;
 
@@ -81,6 +106,7 @@ public class WFTResponseMiddleware
             memStream.SetLength(0);
             await JsonSerializer.SerializeAsync(context.Response.Body, wrappedResponse, new JsonSerializerOptions
             {
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, // Use camelCase for JSON:API conventions
                 WriteIndented = true,
                 ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
             });
@@ -99,6 +125,7 @@ public class WFTResponseMiddleware
             context.Response.ContentType = "application/json";
             await JsonSerializer.SerializeAsync(context.Response.Body, wrappedError, new JsonSerializerOptions
             {
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, // Use camelCase for JSON:API conventions
                 WriteIndented = true
             });
 

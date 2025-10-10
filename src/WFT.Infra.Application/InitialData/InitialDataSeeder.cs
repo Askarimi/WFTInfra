@@ -79,8 +79,6 @@ namespace WFT.Infra.Application.InitialData
                         {
                             Name = permissionName,
                             DisplayName = permissionName,
-                            RoleId = adminRole.Id,
-                            Description = permissionName
                         };
 
                         var addedPermission = await _permissionService.AddAsync(permission);

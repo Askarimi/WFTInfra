@@ -44,11 +44,15 @@ namespace WFT.Infra.Infrastructure.Repositories
 
         public async Task<bool> HasPermissionAsync(long userId, string permissionName)
         {
+            var normalizedPermission = permissionName.Trim().ToLower();
+
             return await _context.Users
                 .Where(u => u.Id == userId)
                 .SelectMany(u => u.UserRoles)
                 .SelectMany(ur => ur.Role.RolePermissions)
-                .AnyAsync(rp => rp.Permission.Name == permissionName && rp.Permission.IsActive);
+                .AnyAsync(rp =>
+                    rp.Permission.IsActive &&
+                    rp.Permission.Name.ToLower() == normalizedPermission);
         }
     }
 }
