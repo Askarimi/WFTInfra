@@ -19,7 +19,7 @@ namespace WFT.Infra.Application
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
             });
 
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
+            services.AddAutoMapper(cfg => cfg.AddMaps(Assembly.GetExecutingAssembly()));
 
             // تنظیمات و وابستگی‌های لایه Application (بدون ارجاع به زیرساخت)
 
