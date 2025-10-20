@@ -78,32 +78,36 @@ namespace WFT.Infra.WebApi.Controllers
         }
 
         // READ ALL
-        [HttpGet]
-        [Route("List")]
+        [HttpGet("List")]
         public async Task<IActionResult> GetAll([FromQuery] PagedQueryRequest request)
         {
             var currentUserId = _workContext.UserId!.Value;
 
             var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewUserList");
             if (!authResult.HasAccess)
-                return Forbid();
+                return WFTJsonResult.Fail("Access denied", 403);
 
-            if (request.PageNumber <= 0) return BadRequest("PageNumber must be greater than 0");
-            if (request.PageSize <= 0) return BadRequest("PageSize must be greater than 0");
+            if (request.PageNumber <= 0)
+                return WFTJsonResult.Fail("PageNumber must be greater than 0", 400);
+
+            if (request.PageSize <= 0)
+                return WFTJsonResult.Fail("PageSize must be greater than 0", 400);
 
             var result = await _userService.GetPagedListAsync(request);
 
-            var resultOK = WFTJsonResult.Ok(result.Items, meta: new MetaData
+
+
+            return WFTJsonResult.Ok(result.Items, new
             {
-                PageNumber = result.PageNumber,
-                PageSize = result.PageSize,
-                TotalCount = result.TotalCount,
-                TotalPages = result.TotalPages
+                pageNumber = result.PageNumber,
+                pageSize = result.PageSize,
+                totalCount = result.TotalCount,
+                totalPages = result.TotalPages,
+                hasNextPage = result.HasNextPage,
+                hasPreviousPage = result.HasPreviousPage
             });
-
-
-            return Ok(resultOK);
         }
+
 
         // UPDATE
         [HttpPut()]

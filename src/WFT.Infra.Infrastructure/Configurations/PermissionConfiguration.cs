@@ -37,3 +37,4 @@ namespace WFT.Infra.Infrastructure.Configurations
     }
 }
 
+

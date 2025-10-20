@@ -4,6 +4,7 @@ using WFT.Infra.Application.Contracts.DTOs.UserManagment;
 using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Contracts.Interfaces;
+using WFT.Infra.WebApi.CustomConfig;
 
 namespace WFT.Infra.WebApi.Controllers
 {
@@ -33,13 +34,51 @@ namespace WFT.Infra.WebApi.Controllers
             try
             {
                 var user = await _authService.RegisterAsync(dto);
-                return Ok(new { message = "کاربر با موفقیت ثبت شد." });
+                return WFTJsonResult.Ok(new { message = "کاربر با موفقیت ثبت شد." });
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+
+        //[HttpPost("login")]
+        //public async Task<IActionResult> Login([FromBody] UserLoginDto dto)
+        //{
+        //    try
+        //    {
+        //        var result = await _authService.LoginAsync(dto);
+        //        if (result == null)
+        //            return Unauthorized("نام کاربری یا رمز عبور معتبر نیست.");
+
+        //        // RefreshToken در Cookie
+        //        Response.Cookies.Append("refresh_token", result.RefreshToken, new CookieOptions
+        //        {
+        //            HttpOnly = true,
+        //            Secure = true,
+        //            SameSite = SameSiteMode.Strict,
+        //            Expires = DateTimeOffset.UtcNow.AddDays(7)
+        //        });
+
+        //        return WFTJsonResult.Ok(new
+        //        {
+        //            accessToken = result.AccessToken,
+        //            user = new
+        //            {
+        //                id = result.User.Id,
+        //                username = result.User.Username,
+        //                firstname = result.User.FirstName,
+        //                lastname = result.User.LastName,
+        //                fullName = $"{result.User.FirstName} {result.User.LastName}",
+        //                roles = result.User.Roles
+        //            }
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto dto)
@@ -48,9 +87,12 @@ namespace WFT.Infra.WebApi.Controllers
             {
                 var result = await _authService.LoginAsync(dto);
                 if (result == null)
-                    return Unauthorized("نام کاربری یا رمز عبور معتبر نیست.");
+                {
+                    // کاربر یا رمز اشتباه
+                    return WFTJsonResult.Fail("نام کاربری یا رمز عبور معتبر نیست.", 401);
+                }
 
-                // RefreshToken در Cookie
+                // ذخیره RefreshToken در کوکی امن
                 Response.Cookies.Append("refresh_token", result.RefreshToken, new CookieOptions
                 {
                     HttpOnly = true,
@@ -59,25 +101,30 @@ namespace WFT.Infra.WebApi.Controllers
                     Expires = DateTimeOffset.UtcNow.AddDays(7)
                 });
 
-                return Ok(new
+                var userInfo = new
+                {
+                    id = result.User.Id,
+                    username = result.User.Username,
+                    firstname = result.User.FirstName,
+                    lastname = result.User.LastName,
+                    fullName = $"{result.User.FirstName} {result.User.LastName}",
+                    roles = result.User.Roles
+                };
+
+                // موفقیت ورود
+                return WFTJsonResult.Ok(new
                 {
                     accessToken = result.AccessToken,
-                    user = new
-                    {
-                        id = result.User.Id,
-                        username = result.User.Username,
-                        firstname = result.User.FirstName,
-                        lastname = result.User.LastName,
-                        fullName = $"{result.User.FirstName} {result.User.LastName}",
-                        roles = result.User.Roles
-                    }
+                    user = userInfo
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // خطاهای غیرمنتظرهٔ سرور
+                return WFTJsonResult.Fail("خطای داخلی در فرآیند ورود کاربر", 500, ex);
             }
         }
+
 
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
@@ -92,7 +139,7 @@ namespace WFT.Infra.WebApi.Controllers
 
                 Response.Cookies.Delete("refresh_token");
 
-                return Ok("با موفقیت خارج شدید");
+                return WFTJsonResult.Ok("با موفقیت خارج شدید");
             }
             catch (Exception ex)
             {
@@ -119,7 +166,7 @@ namespace WFT.Infra.WebApi.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(7)
             });
 
-            return Ok(new { accessToken = newTokens.AccessToken });
+            return WFTJsonResult.Ok(new { accessToken = newTokens.AccessToken });
         }
     }
 }
