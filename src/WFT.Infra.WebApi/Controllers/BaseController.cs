@@ -1,41 +1,37 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using WFT.Infra.Application.Contracts.Models;
+using WFT.Infra.WebApi.CustomConfig;
 
 namespace WFT.Infra.WebApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Authorize]
+    [Route("api/app/v1/wft/[controller]", Name = "api_wftInfra_[controller]", Order = 0)]
     [ApiController]
     public class BaseController : ControllerBase
     {
-
-        // متد برای پاسخ موفق
-        protected IActionResult SuccessResponse(object result)
+        /// <summary>
+        /// Returns a standardized paginated response following JSON:API conventions
+        /// Response structure: { success, data: [], meta: { page, pageSize, totalItems, totalPages } }
+        /// Serialized to camelCase format
+        /// Uses ApiEnvelope for consistent root-level structure
+        /// </summary>
+        /// <typeparam name="T">The type of items in the paged result</typeparam>
+        /// <param name="data">The collection of items for the current page</param>
+        /// <param name="page">Current page number (1-based)</param>
+        /// <param name="pageSize">Number of items per page</param>
+        /// <param name="totalItems">Total number of items across all pages</param>
+        /// <param name="message">Optional success message</param>
+        /// <returns>IActionResult with ApiEnvelope wrapping flat data array and meta object</returns>
+        protected IActionResult PaginatedResponse<T>(IEnumerable<T> data, int page, int pageSize, int totalItems, string? message = null)
         {
-            return Ok(new { Success = true, Data = result });
-        }
-
-        // متد برای پاسخ خطا
-        protected IActionResult ErrorResponse(string errorMessage, int statusCode = 400)
-        {
-            return StatusCode(statusCode, new { Success = false, Error = errorMessage });
-        }
-
-        // متد برای پاسخ ایجاد (برای 201 Created)
-        protected IActionResult CreatedResponse(object result)
-        {
-            return CreatedAtAction(nameof(GetById), new { id = 1 }, result);  // اینجا باید آی‌دی و مسیر مناسب را اضافه کنید
-        }
-
-        // متد برای پاسخ 204 (No Content)
-        protected IActionResult NoContentResponse()
-        {
-            return NoContent();
-        }
-
-        // فرض بر این است که متد GetById در کنترلر مربوطه تعریف شده باشد
-        [HttpGet("id")]
-        public virtual IActionResult GetById(int id)
-        {
-            return Ok(new { Success = true, Message = "GetById method should be overridden" });
+            // Use PagedResponse internally to compute Meta
+            var paged = PagedResponse<T>.Ok(data, page, pageSize, totalItems, message);
+            
+            // Wrap in ApiEnvelope for consistent root-level structure
+            var envelope = ApiEnvelope<IEnumerable<T>>.Ok(paged.Data, paged.Message, paged.Meta);
+            
+            return Ok(envelope);
         }
     }
 }

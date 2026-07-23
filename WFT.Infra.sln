@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WFT.Infra.Application.Contr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WFT.Infra.Bootstrapper", "src\WFT.Infra.Bootstrapper\WFT.Infra.Bootstrapper.csproj", "{9D1CF05A-9084-4A12-9C50-47BE5932A765}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WFT.Infra.Test", "src\WFT.Infra.Test\WFT.Infra.Test.csproj", "{2FAB01F9-8D97-4520-ACF0-3E9177A134B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{9D1CF05A-9084-4A12-9C50-47BE5932A765}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D1CF05A-9084-4A12-9C50-47BE5932A765}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D1CF05A-9084-4A12-9C50-47BE5932A765}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FAB01F9-8D97-4520-ACF0-3E9177A134B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FAB01F9-8D97-4520-ACF0-3E9177A134B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FAB01F9-8D97-4520-ACF0-3E9177A134B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FAB01F9-8D97-4520-ACF0-3E9177A134B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -58,6 +64,7 @@ Global
 		{76E3710C-A9A3-4001-8EC1-973A2B608E69} = {B63B114B-2914-4313-A954-AF985713A251}
 		{480246A5-3899-69A0-9BB7-4519F21E49CC} = {B63B114B-2914-4313-A954-AF985713A251}
 		{9D1CF05A-9084-4A12-9C50-47BE5932A765} = {B63B114B-2914-4313-A954-AF985713A251}
+		{2FAB01F9-8D97-4520-ACF0-3E9177A134B4} = {B63B114B-2914-4313-A954-AF985713A251}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9BF7C96E-BC2B-4560-A40F-44C78554C68F}

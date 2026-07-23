@@ -1,0 +1,220 @@
+﻿using AutoMapper;
+using System.Linq.Expressions;
+using WFT.Infra.Application.Contracts.DTOs.UserManagment;
+using WFT.Infra.Application.Contracts.Interfaces;
+using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
+using WFT.Infra.Application.Contracts.Models;
+using WFT.Infra.Application.Contracts.Repositories;
+using WFT.Infra.Core.Entities.UserManagment;
+
+namespace WFT.Infra.Application.Services.UserManagment
+{
+    public partial class UserService : IUserService
+    {
+
+        #region ctor
+
+        private readonly IRepository<User> _userRepository;
+        private readonly IUserRepository _userPermissionRepositroy;
+        private readonly IRepository<UserRole> _userRoleRepository;
+        private readonly IRepository<Role> _roleRepository;
+        private readonly IPasswordHasher _passwordHasher;
+        private readonly IMapper _mapper;
+        private readonly IUserPasswordService _userPasswordService;
+
+        public UserService(IRepository<User> userRepository,
+            IMapper mapper,
+            IRepository<UserRole> userRoleRepository,
+            IRepository<Role> roleRepository,
+            IPasswordHasher passwordHasher,
+            IUserPasswordService userPasswordService,
+            IUserRepository userPermissionRepositroy
+            )
+        {
+            _mapper = mapper;
+            _userRepository = userRepository;
+            _userRoleRepository = userRoleRepository;
+            _roleRepository = roleRepository;
+            _passwordHasher = passwordHasher;
+            _userPasswordService = userPasswordService;
+            _userPermissionRepositroy = userPermissionRepositroy;
+        }
+        #endregion
+
+        public virtual async Task AddRoleToUserAsync(long userId, List<long> roleIds)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null) throw new Exception("Role not found");
+
+            var rolePermissions = roleIds.Select(roleId => new UserRole
+            {
+                UserId = user.Id,
+                RoleId = roleId
+            }).ToList();
+
+            await _userRoleRepository.AddRangeAsync(rolePermissions);
+        }
+
+        public virtual async Task<UserDto> AddAsync(UserDto dto)
+        {
+            var user = _mapper.Map<User>(dto);
+            await _userRepository.AddAsync(user);
+            return _mapper.Map<UserDto>(user);
+        }
+
+        public virtual async Task DeleteAsync(long id)
+        {
+            await _userRepository.DeleteAsync(id);
+        }
+
+        public virtual async Task<IEnumerable<UserDto>> GetAllAsync()
+        {
+            var users = await _userRepository.GetAllAsync();
+            return _mapper.Map<IEnumerable<UserDto>>(users);
+        }
+        public async Task<IPagedList<UserDto>> GetPagedListAsync(PagedQueryRequest request)
+        {
+
+            // شروع از یک فیلتر پایه برای جستجوی عمومی
+            Expression<Func<User, bool>> filter = user =>
+                string.IsNullOrEmpty(request.SearchTerm) ||
+                user.Username.Contains(request.SearchTerm) ||
+                user.Email.Contains(request.SearchTerm) ||
+                user.FirstName.Contains(request.SearchTerm) ||
+                user.LastName.Contains(request.SearchTerm);
+
+            // اگر فیلترهای اضافی (Filters) وجود دارند، آن‌ها را اضافه می‌کنیم
+            if (request.Filters != null && request.Filters.Count > 0)
+            {
+                foreach (var filterItem in request.Filters)
+                {
+                    // Handle special AccessibleUserIds filter
+                    if (filterItem.Key == "AccessibleUserIds" && filterItem.Value is IEnumerable<long> accessibleUserIds)
+                    {
+                        var param = Expression.Parameter(typeof(User), "user");
+                        var idProperty = Expression.Property(param, "Id");
+                        var containsMethod = typeof(Enumerable).GetMethods()
+                            .First(m => m.Name == "Contains" && m.GetParameters().Length == 2)
+                            .MakeGenericMethod(typeof(long));
+                        var containsCall = Expression.Call(containsMethod, Expression.Constant(accessibleUserIds), idProperty);
+
+                        filter = Expression.Lambda<Func<User, bool>>(
+                            Expression.AndAlso(filter.Body, containsCall), param);
+                    }
+                    else
+                    {
+                        var property = typeof(User).GetProperty(filterItem.Key);
+                        if (property != null)
+                        {
+                            var param = Expression.Parameter(typeof(User), "user");
+                            var left = Expression.Property(param, property);
+                            var right = Expression.Constant(filterItem.Value);
+                            var equalExpression = Expression.Equal(left, right);
+
+                            // ترکیب فیلترهای قبلی با فیلتر جدید
+                            filter = Expression.Lambda<Func<User, bool>>(Expression.AndAlso(filter.Body, equalExpression), param);
+                        }
+                    }
+                }
+            }
+
+            // دریافت داده‌ها با صفحه‌بندی
+            var result = await _userRepository.GetPagedAsync(filter, request.PageNumber, request.PageSize);
+
+            // تبدیل به UserDto با استفاده از AutoMapper
+            var userDtos = _mapper.Map<IEnumerable<UserDto>>(result.Items);
+
+            // بازگشت نتایج صفحه‌بندی‌شده
+            return new PagedList<UserDto>(userDtos, result.TotalCount, result.PageNumber, result.PageSize);
+        }
+
+        public virtual async Task<UserDto> GetByIdAsync(long id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            return _mapper.Map<UserDto>(user);
+        }
+
+        public virtual async Task<UserDto> GetByNameAsync(string name)
+        {
+            var user = await _userRepository.GetByExpressionAsync(u => u.FirstName.Contains(name) || u.LastName.Contains(name));
+
+            return _mapper.Map<UserDto>(user);
+        }
+
+        public virtual async Task<UserDto> GetByUsernameAsync(string username)
+        {
+            var user = await _userRepository.GetByExpressionAsync(u => u.Username.Contains(username));
+
+            return _mapper.Map<UserDto>(user);
+        }
+
+        public virtual async Task<UserDto> UpdateAsync(UserDto dto)
+        {
+            var user = _mapper.Map<User>(dto);
+
+            await _userRepository.UpdateAsync(user);
+
+            return _mapper.Map<UserDto>(user);
+
+        }
+
+        public virtual async Task<IEnumerable<RoleDto>> GetRolesForUserAsync(long userId)
+        {
+            // پیدا کردن تمام UserRole‌هایی که مربوط به این کاربر هستن
+            var userRoles = await _userRoleRepository.GetListByExpressionAsync(ur => ur.UserId == userId);
+
+            // استخراج RoleId‌ها
+            var roleIds = userRoles.Select(ur => ur.RoleId).Distinct().ToList();
+
+            if (!roleIds.Any())
+                return Enumerable.Empty<RoleDto>();
+
+            // پیدا کردن خود Roleها
+            var roles = await _roleRepository.GetListByExpressionAsync(r => roleIds.Contains(r.Id));
+
+            // تبدیل به DTO با استفاده از AutoMapper
+            return _mapper.Map<IEnumerable<RoleDto>>(roles);
+        }
+
+        public async Task<bool> HasPermissionAsync(long userId, string permissionName)
+        {
+
+            return await _userPermissionRepositroy.HasPermissionAsync(userId, permissionName);
+        }
+
+        public async Task<long> RegisterByUserAsync(UserRegisterDto dto)
+        {
+            // چک کردن اینکه آیا کاربر قبلاً ثبت‌نام کرده یا نه
+
+            // ایجاد یک شرط به صورت Expression
+            var predicate = (Expression<Func<User, bool>>)(u => u.Email == dto.Email);
+
+            var existingUser = await _userRepository.GetByExpressionAsync(predicate);
+
+
+            if (existingUser != null)
+                throw new Exception("User with this email already exists.");
+
+            var userdto = _mapper.Map<UserDto>(dto);
+
+            var user = _mapper.Map<User>(userdto);
+
+            // اضافه کردن کاربر به دیتابیس
+            await _userRepository.AddAsync(user);
+
+            var userPassword = new UserPasswordDto
+            {
+                UserId = user.Id,
+                Password = dto.Password,
+                ConfirmPassword = dto.Password
+            };
+
+            await _userPasswordService.SetPasswordAsync(userPassword);
+
+            return user.Id;
+        }
+
+
+    }
+}
