@@ -47,20 +47,21 @@ namespace WFT.Infra.Application
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IPermissionService, PermissionService>();
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<ILoginService, LoginService>();
             // ثبت IJwtTokenGenerator باید در لایه زیرساخت/Bootstrapper انجام شود
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IWorkContext, WorkContext>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserPasswordService, UserPasswordService>();
-            
+
             // ABAC Services
             services.AddScoped<IABACService, ABACService>();
             services.AddScoped<IPolicyRuleService, PolicyRuleService>();
             services.AddScoped<IAttributeService, AttributeService>();
             services.AddScoped<IConditionOperatorService, ConditionOperatorService>();
             services.AddScoped<IAttributeGroupService, AttributeGroupService>();
-            
+
             // Authorization Service
             services.AddScoped<IAuthorizationService, AuthorizationService>();
             // services.AddScoped(typeof(IPagedList<>), typeof(PagedList<>));

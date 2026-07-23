@@ -43,7 +43,8 @@ namespace WFT.Infra.WebApi.Controllers
             {
                 // اگر نیاز به جزئیات داشتیم، می‌توانیم از EvaluateAccessDetailedAsync استفاده کنیم
                 var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "CreateUser");
-                return Forbid(authResult.EvaluationReason ?? "شما مجوز ایجاد کاربر را ندارید.");
+                // return Forbid(authResult.EvaluationReason ?? "شما مجوز ایجاد کاربر را ندارید.");
+                return WFTJsonResult.Fail(authResult.EvaluationReason ?? "شما مجوز ایجاد کاربر را ندارید.", 403);
             }
 
 
@@ -67,14 +68,14 @@ namespace WFT.Infra.WebApi.Controllers
             if (!hasPermission)
             {
                 var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewUser", id);
-                return Forbid(authResult.EvaluationReason ?? "شما مجوز مشاهده این کاربر را ندارید.");
+                return WFTJsonResult.Fail(authResult.EvaluationReason ?? "شما مجوز مشاهده این کاربر را ندارید.", 403);
             }
 
             var user = await _userService.GetByIdAsync(id);
             if (user == null)
                 return NotFound("کاربر یافت نشد.");
 
-            return Ok(user);
+            return WFTJsonResult.Ok(user);
         }
 
         // READ ALL
@@ -121,11 +122,11 @@ namespace WFT.Infra.WebApi.Controllers
 
             var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "EditUser", request.Id);
             if (!authResult.HasAccess)
-                return Forbid(authResult.EvaluationReason ?? "شما مجوز ویرایش این کاربر را ندارید.");
+                return WFTJsonResult.Fail(authResult.EvaluationReason ?? "شما مجوز ویرایش این کاربر را ندارید.", 403);
 
             var result = await _userService.UpdateAsync(request);
 
-            return Ok(result);
+            return WFTJsonResult.Ok(result);
         }
 
         // DELETE
@@ -139,7 +140,7 @@ namespace WFT.Infra.WebApi.Controllers
             if (!hasPermission)
             {
                 var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "DeleteUser", id);
-                return Forbid(authResult.EvaluationReason ?? "شما مجوز حذف این کاربر را ندارید.");
+                return WFTJsonResult.Fail(authResult.EvaluationReason ?? "شما مجوز حذف این کاربر را ندارید.", 403);
             }
 
             await _userService.DeleteAsync(id);

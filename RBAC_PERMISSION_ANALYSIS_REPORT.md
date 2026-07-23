@@ -684,3 +684,5 @@ public record UserWithRolesDto
 ## Conclusion
 
 The WFT.Infra backend implements a **sophisticated RBAC+ABAC hybrid system** with solid architectural foundations. The main limitation is the absence of API endpoints for dynamic role-permission and user-role management, which prevents frontend applications from fully managing the authorization model. Adding these missing controller endpoints and DTOs would complete the implementation and enable a fully functional frontend authorization management interface.
+
+
