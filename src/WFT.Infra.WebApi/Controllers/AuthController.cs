@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
+using WFT.Infra.Application.Contracts.Exceptions;
 using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Contracts.Interfaces;
@@ -34,7 +35,7 @@ namespace WFT.Infra.WebApi.Controllers
             try
             {
                 var user = await _authService.RegisterAsync(dto);
-                return WFTJsonResult.Ok(new { message = "کاربر با موفقیت ثبت شد." });
+                return Ok(new { message = "کاربر با موفقیت ثبت شد." });
             }
             catch (Exception ex)
             {
@@ -89,7 +90,7 @@ namespace WFT.Infra.WebApi.Controllers
                 if (result == null)
                 {
                     // کاربر یا رمز اشتباه
-                    return WFTJsonResult.Fail("نام کاربری یا رمز عبور معتبر نیست.", 401);
+                    throw new AppException("نام کاربری یا رمز عبور معتبر نیست.", 401);
                 }
 
                 // ذخیره RefreshToken در کوکی امن
@@ -112,7 +113,7 @@ namespace WFT.Infra.WebApi.Controllers
                 };
 
                 // موفقیت ورود
-                return WFTJsonResult.Ok(new
+                return Ok(new
                 {
                     accessToken = result.AccessToken,
                     user = userInfo
@@ -120,8 +121,7 @@ namespace WFT.Infra.WebApi.Controllers
             }
             catch (Exception ex)
             {
-                // خطاهای غیرمنتظرهٔ سرور
-                return WFTJsonResult.Fail("خطای داخلی در فرآیند ورود کاربر", 500, ex);
+                throw new AppException("خطای داخلی در فرآیند ورود کاربر", 500);
             }
         }
 
@@ -139,7 +139,7 @@ namespace WFT.Infra.WebApi.Controllers
 
                 Response.Cookies.Delete("refresh_token");
 
-                return WFTJsonResult.Ok("با موفقیت خارج شدید");
+                return Ok("با موفقیت خارج شدید");
             }
             catch (Exception ex)
             {
@@ -166,7 +166,7 @@ namespace WFT.Infra.WebApi.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(7)
             });
 
-            return WFTJsonResult.Ok(new { accessToken = newTokens.AccessToken });
+            return Ok(new { accessToken = newTokens.AccessToken });
         }
     }
 }

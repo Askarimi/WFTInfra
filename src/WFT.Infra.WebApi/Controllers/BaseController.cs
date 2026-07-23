@@ -11,27 +11,26 @@ namespace WFT.Infra.WebApi.Controllers
     public class BaseController : ControllerBase
     {
         /// <summary>
-        /// Returns a standardized paginated response following JSON:API conventions
-        /// Response structure: { success, data: [], meta: { page, pageSize, totalItems, totalPages } }
-        /// Serialized to camelCase format
-        /// Uses ApiEnvelope for consistent root-level structure
+        /// Returns a standardized paginated response.
+        /// The actual JSON envelope wrapping ({ isSuccess, statusCode, data, meta }) 
+        /// is automatically applied globally by WFTResponseMiddleware.
         /// </summary>
-        /// <typeparam name="T">The type of items in the paged result</typeparam>
-        /// <param name="data">The collection of items for the current page</param>
-        /// <param name="page">Current page number (1-based)</param>
-        /// <param name="pageSize">Number of items per page</param>
-        /// <param name="totalItems">Total number of items across all pages</param>
-        /// <param name="message">Optional success message</param>
-        /// <returns>IActionResult with ApiEnvelope wrapping flat data array and meta object</returns>
         protected IActionResult PaginatedResponse<T>(IEnumerable<T> data, int page, int pageSize, int totalItems, string? message = null)
         {
-            // Use PagedResponse internally to compute Meta
-            var paged = PagedResponse<T>.Ok(data, page, pageSize, totalItems, message);
-            
-            // Wrap in ApiEnvelope for consistent root-level structure
-            var envelope = ApiEnvelope<IEnumerable<T>>.Ok(paged.Data, paged.Message, paged.Meta);
-            
-            return Ok(envelope);
+            // محاسبه اطلاعات صفحه‌بندی در قالب آبجکت Meta
+            var meta = new
+            {
+                pageNumber = page,
+                pageSize = pageSize,
+                totalCount = totalItems,
+                totalPages = (int)Math.Ceiling((double)totalItems / pageSize),
+                hasNextPage = page * pageSize < totalItems,
+                hasPreviousPage = page > 1
+            };
+
+            // بازگرداندن مستقیم PagedResponse. 
+            // Middleware این فرمت را شناسایی کرده و ساختار نهایی را می‌سازد.
+            return Ok(new PagedResponse<T>(data, meta));
         }
     }
 }

@@ -3,8 +3,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using WFT.Infra.Application.Contracts.Interfaces;
-using WFT.Infra.Application.InitialData;
 using WFT.Infra.Application.Contracts.Settings;
+using WFT.Infra.Application.InitialData;
 using WFT.Infra.Bootstrapper;
 using WFT.Infra.WebApi.CustomConfig;
 
@@ -98,7 +98,7 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 
-app.UseMiddleware<WFTResponseMiddleware>();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -133,6 +133,7 @@ using (var scope = app.Services.CreateScope())
 
     migrator.Initialize();
 }
+app.UseMiddleware<WFTResponseMiddleware>();
 
 app.MapControllers();
 

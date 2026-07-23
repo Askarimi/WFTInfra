@@ -23,7 +23,7 @@ namespace WFT.Infra.Test.Pagination
         {
             // Arrange
             var items = new List<string> { "Item1", "Item2", "Item3" };
-            var response = PagedResponse<string>.Ok(items, 1, 10, 25);
+            var response = .Ok(items, 1, 10, 25);
 
             // Act
             var json = JsonSerializer.Serialize(response, _camelCaseOptions);

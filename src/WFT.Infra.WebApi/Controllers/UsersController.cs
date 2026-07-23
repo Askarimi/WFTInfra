@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WFT.Infra.Application.Contracts.DTOs.UserManagment;
+using WFT.Infra.Application.Contracts.Exceptions;
 using WFT.Infra.Application.Contracts.Interfaces;
 using WFT.Infra.Application.Contracts.Interfaces.UserManagment;
 using WFT.Infra.Application.Contracts.Models;
@@ -85,19 +86,19 @@ namespace WFT.Infra.WebApi.Controllers
 
             var authResult = await _authorizationService.EvaluateAccessDetailedAsync(currentUserId, "ViewUserList");
             if (!authResult.HasAccess)
-                return WFTJsonResult.Fail("Access denied", 403);
+                 throw new AppException("Access denied", 403);
 
             if (request.PageNumber <= 0)
-                return WFTJsonResult.Fail("PageNumber must be greater than 0", 400);
+                throw new AppException("PageNumber must be greater than 0", 400);
 
             if (request.PageSize <= 0)
-                return WFTJsonResult.Fail("PageSize must be greater than 0", 400);
+                throw new AppException("PageSize must be greater than 0", 400);
 
             var result = await _userService.GetPagedListAsync(request);
 
 
 
-            return WFTJsonResult.Ok(result.Items, new
+            return Ok(new PagedResponse<UserDto>(result.Items, new
             {
                 pageNumber = result.PageNumber,
                 pageSize = result.PageSize,
@@ -105,7 +106,7 @@ namespace WFT.Infra.WebApi.Controllers
                 totalPages = result.TotalPages,
                 hasNextPage = result.HasNextPage,
                 hasPreviousPage = result.HasPreviousPage
-            });
+            }));
         }
 
 

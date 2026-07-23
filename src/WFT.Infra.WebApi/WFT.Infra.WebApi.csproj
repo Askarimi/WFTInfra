@@ -1,13 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);1591</NoWarn>
 	  <UserSecretsId>31e4452f-4f10-41ff-9a43-4a66407b8e93</UserSecretsId>
   </PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="CustomConfig\WFTJsonResult.cs" />
+	  <Compile Remove="CustomConfig\WFTResponseMiddleware.cs" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
