@@ -93,7 +93,18 @@ namespace WFT.Infra.WebApi.Controllers
             // استفاده از سرویس برای دریافت داده‌ها
             var result = await _permissionService.GetPagedListAsync(request);
 
-            return PaginatedResponse<PermissionDto>(result.Items, request.PageNumber, request.PageSize, result.TotalCount);
+
+            return Ok(new PagedResponse<PermissionDto>(result.Items, new
+            {
+                pageNumber = result.PageNumber,
+                pageSize = result.PageSize,
+                totalCount = result.TotalCount,
+                totalPages = result.TotalPages,
+                hasNextPage = result.HasNextPage,
+                hasPreviousPage = result.HasPreviousPage
+            }));
+
+           // return Ok(new PagedResponse<PermissionDto>(result.Items,new { request.PageNumber, request.PageSize, result.TotalCount }));
         }
 
         // UPDATE
