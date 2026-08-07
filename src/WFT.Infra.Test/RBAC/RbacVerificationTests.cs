@@ -277,6 +277,80 @@ namespace WFT.Infra.Test.RBAC
             Assert.True(hasEditPermission, "Should recognize EditUser permission without .Include()");
         }
 
+        [Fact]
+        public async Task SuperAdmin_Should_Bypass_Rbac_And_Abac_Without_Assigned_Permissions()
+        {
+            var userService = new Moq.Mock<WFT.Infra.Application.Contracts.Interfaces.UserManagment.IUserService>(Moq.MockBehavior.Strict);
+            userService
+                .Setup(service => service.GetRolesForUserAsync(99))
+                .Returns(Task.FromResult<IEnumerable<WFT.Infra.Application.Contracts.DTOs.UserManagment.RoleDto>>(
+                [
+                    new WFT.Infra.Application.Contracts.DTOs.UserManagment.RoleDto
+                    {
+                        Name = "SuperAdmin",
+                        IsActive = true
+                    }
+                ]));
+
+            var abacService = new Moq.Mock<WFT.Infra.Application.Contracts.Interfaces.UserManagment.IABACService>(Moq.MockBehavior.Strict);
+            var repository = Moq.Mock.Of<WFT.Infra.Application.Contracts.Repositories.IRepository<WFT.Infra.Core.Entities.UserManagment.User>>();
+            var authorizationService = new WFT.Infra.Application.Services.AuthorizationService(
+                userService.Object,
+                abacService.Object,
+                repository);
+
+            var hasAccess = await authorizationService.HasPermissionAsync(
+                99,
+                "PermissionWithoutAssignment",
+                new { Id = 10 });
+            var detailedResult = await authorizationService.EvaluateAccessDetailedAsync(
+                99,
+                "PermissionWithoutAssignment",
+                new { Id = 10 });
+
+            Assert.True(hasAccess);
+            Assert.True(detailedResult.HasAccess);
+            Assert.Contains("SuperAdmin", detailedResult.EvaluationReason);
+            userService.Verify(
+                service => service.HasPermissionAsync(Moq.It.IsAny<long>(), Moq.It.IsAny<string>()),
+                Moq.Times.Never);
+            abacService.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public async Task Normal_Role_Should_Continue_Using_Explicit_Permission_Checks()
+        {
+            var userService = new Moq.Mock<WFT.Infra.Application.Contracts.Interfaces.UserManagment.IUserService>(Moq.MockBehavior.Strict);
+            userService
+                .Setup(service => service.GetRolesForUserAsync(100))
+                .Returns(Task.FromResult<IEnumerable<WFT.Infra.Application.Contracts.DTOs.UserManagment.RoleDto>>(
+                [
+                    new WFT.Infra.Application.Contracts.DTOs.UserManagment.RoleDto
+                    {
+                        Name = "Manager",
+                        IsActive = true
+                    }
+                ]));
+            userService
+                .Setup(service => service.HasPermissionAsync(100, "DeleteUser"))
+                .Returns(Task.FromResult(false));
+
+            var abacService = new Moq.Mock<WFT.Infra.Application.Contracts.Interfaces.UserManagment.IABACService>(Moq.MockBehavior.Strict);
+            var repository = Moq.Mock.Of<WFT.Infra.Application.Contracts.Repositories.IRepository<WFT.Infra.Core.Entities.UserManagment.User>>();
+            var authorizationService = new WFT.Infra.Application.Services.AuthorizationService(
+                userService.Object,
+                abacService.Object,
+                repository);
+
+            var hasAccess = await authorizationService.HasPermissionAsync(100, "DeleteUser");
+
+            Assert.False(hasAccess);
+            userService.Verify(
+                service => service.HasPermissionAsync(100, "DeleteUser"),
+                Moq.Times.Once);
+            abacService.VerifyNoOtherCalls();
+        }
+
         /// <summary>
         /// Cleanup: Dispose of the in-memory database context
         /// </summary>
